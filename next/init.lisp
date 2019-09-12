@@ -13,15 +13,16 @@
 ;; address (that, or I just don't understand HOW it is setting it), so we will
 ;; instead have to figure out where the bus socket is by querying launchd, then
 ;; set all the env vars ourselves. NOTE: The following is sbcl specific!
-(let
-    ((sock_path (string-trim " 
+(if (string-equal (software-type) "Darwin")
+    (let
+	((sock_path (string-trim " 
 " ;; Trim the newline from the cmd result (very gross syntax, but portable...)
-			     (uiop:run-program
-			      '("launchctl" "getenv" "DBUS_LAUNCHD_SESSION_BUS_SOCKET")
-			      :output :string))))
-  (sb-posix:setenv "DBUS_LAUNCHD_SESSION_BUS_SOCKET" sock_path 1)
-  (sb-posix:setenv "DBUS_SESSION_BUS_ADDRESS"
-		   (concatenate 'string "unix:path=" sock_path) 1))
+				 (uiop:run-program
+				  '("launchctl" "getenv" "DBUS_LAUNCHD_SESSION_BUS_SOCKET")
+				  :output :string))))
+      (sb-posix:setenv "DBUS_LAUNCHD_SESSION_BUS_SOCKET" sock_path 1)
+      (sb-posix:setenv "DBUS_SESSION_BUS_ADDRESS"
+		       (concatenate 'string "unix:path=" sock_path) 1)))
 
 ;; As an alternative, we can also try just create a new session bus, just for
 ;; next to use (then set the address env var so the port knows where to listen).
@@ -85,4 +86,7 @@
   "Open my home directory in a browser window"
   (let ((url (concatenate 'string "file://"
 			  (directory-namestring(truename "~/")))))
-  (buffer-set-url :url url :buffer (active-buffer *interface*))))
+    (buffer-set-url :url url :buffer (active-buffer *interface*))))
+
+(setf (get-default 'port 'path)
+      "/home/tviti/common-lisp/next/ports/pyqt-webengine")
