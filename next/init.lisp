@@ -6,7 +6,7 @@
 	("duck" . "https://duckduckgo.com/?q=~a")
 	("quickdocs" . "https://quickdocs.org/search?q=~a")
 	("wiki" . "https://en.wikipedia.org/w/index.php?search=~a")
-	("define" . "https://en.wiktionary.org/w/index.php?search=~a"))
+	("define" . "https://en.wiktionary.org/w/index.php?search=~a")))
 
 
 ;; Unfortunately, if we launch from an application package (e.g. by double
@@ -98,7 +98,6 @@ finishes."
   (let ((url (concatenate 'string "file://"
 			  (directory-namestring(truename "~/")))))
     (buffer-set-url :url url :buffer (active-buffer *interface*))))
-
 
 (define-command select-bookmark-db ()
   "Prompt the user to choose which bookmark database file they would like to
