@@ -1,11 +1,12 @@
 (in-package :next)
 
-;; Setup the sear engine "shortcut" IDs
+;; Setup the search engine "shortcut" IDs
 (setf (get-default 'window 'search-engines)
       '(("default" . "https://www.google.com/search?q=~a")
 	("duck" . "https://duckduckgo.com/?q=~a")
 	("quickdocs" . "https://quickdocs.org/search?q=~a")
-	("wiki" . "https://en.wikipedia.org/w/index.php?search=~a")))
+	("wiki" . "https://en.wikipedia.org/w/index.php?search=~a")
+	("define" . "https://en.wiktionary.org/w/index.php?search=~a"))
 
 
 ;; Unfortunately, if we launch from an application package (e.g. by double
