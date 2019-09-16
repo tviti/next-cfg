@@ -2,8 +2,8 @@
 
 ;; Setup the search engine "shortcut" IDs
 (setf (get-default 'window 'search-engines)
-      '(("default" . "https://www.google.com/search?q=~a")
-	("duck" . "https://duckduckgo.com/?q=~a")
+      '(("google" . "https://www.google.com/search?q=~a")
+	("default" . "https://duckduckgo.com/?q=~a")
 	("quickdocs" . "https://quickdocs.org/search?q=~a")
 	("wiki" . "https://en.wikipedia.org/w/index.php?search=~a")
 	("define" . "https://en.wiktionary.org/w/index.php?search=~a")))
@@ -40,14 +40,25 @@
 ;; 		     :output :interactive)
 ;; (sleep 2)  ;; Take a breather (otherwise core can't connect for some reason)
 
+(defun my-buffer-completion-fn ()
+  (let ((buffers (alexandria:hash-table-values (buffers *interface*)))
+        (active-buffer (active-buffer *interface*)))
+    ;; Make the active buffer the first buffer in the list
+    (when (not (equal (first buffers)
+		      active-buffer))
+      (push active-buffer buffers))
+    (lambda (input)
+      (fuzzy-match input buffers))))
+
 (define-command my-delete-buffer ()
-  "Just ask for confirmation, since it's too easy to accidentally kill a buffer
-with a keybinding"
-  (with-result (y-n (read-from-minibuffer
-		     (make-instance 'minibuffer
-				    :input-prompt "Delete current buffer (y or n)?:")))
-    (if (string-equal y-n "y")
-	(delete-current-buffer))))
+  "Delete the buffer via minibuffer input. This is basically identical to the
+original implementatino, but uses a slightly modified completion function that
+makes the active buffer the default deletion (which is how Emacs does it)."
+  (with-result (buffer (read-from-minibuffer
+                        (make-instance 'minibuffer
+                                       :input-prompt "Kill buffer:"
+                                       :completion-function (my-buffer-completion-fn))))
+    (rpc-buffer-delete *interface* buffer)))
 
 ;; Make vi-normal the default keybinding scheme
 (add-to-default-list 'vi-normal-mode 'buffer 'default-modes)
@@ -58,7 +69,7 @@ with a keybinding"
 
 (define-key :scheme :vi-insert
   "C-[" #'next/vi-mode:vi-normal-mode
-  "C-x k" #'delete-buffer)
+  "C-x k" #'my-delete-buffer)
 
 (define-key :mode 'minibuffer-mode
   "C-[" #'cancel-input)
@@ -118,3 +129,14 @@ database."
 	  (progn
 	    (ensure-file-exists path #'%initialize-bookmark-db)
 	    (setf (bookmark-db-path (rpc-window-active *interface*)) path))))))
+
+;; (add-to-default-list (lambda ()
+;; 		       (setf (get-default 'buffer 'box-style)
+;; 			     (with-open-file (stream "~/.config/next/GitHub-Dark/github-dark.user.css")
+;; 			       (let ((contents (make-string (file-length stream))))
+;; 				 (read-sequence contents stream)
+;; 				 contents))))
+;; 		     'buffer 'load-hook)
+		      
+;; Enable blocker mode in new browsers
+(add-to-default-list 'blocker-mode 'buffer 'default-modes)
