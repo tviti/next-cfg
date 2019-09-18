@@ -74,14 +74,6 @@ makes the active buffer the default deletion (which is how Emacs does it)."
 (define-key :mode 'minibuffer-mode
   "C-[" #'cancel-input)
 
-;; Evil abbreviations for cmds
-(defmacro def-cmd-alias (alias original)
-  "This doesn't seem like the right way to do this"
-  `(progn
-     (define-command ,alias ()
-       (,original))
-     (setf (fdefinition ',alias) #',original)))
-
 (define-command my-set-url-new-buffer ()
   "This is a hack of the original next command, with a small sleep timer added
 because looks like the original tries to set url before buffer creation
@@ -101,6 +93,13 @@ finishes."
 	  (sleep 0.05) ;; our sleep timer hack
           (set-url url :buffer buffer))))))
 
+;; Evil abbreviations for cmds
+(defmacro def-cmd-alias (alias original)
+  "This doesn't seem like the right way to do this"
+  `(progn
+     (define-command ,alias ()
+       (,original))
+     (setf (fdefinition ',alias) #',original)))
 (def-cmd-alias b switch-buffer)
 (def-cmd-alias e my-set-url-new-buffer)
 
