@@ -140,11 +140,12 @@ database."
 (define-command bookmark-db-pull ()
   "Do a git pull on the bookmark db repo. Assumes that (xdg-data-home) has been
 setup as a repo for your bookmarks!"
-  (let ((git-cmd "git")
-	(db-dir (directory-namestring (xdg-data-home))))
-    (uiop:run-program `(,git-cmd
-			,(concatenate 'string "--git-dir=" db-dir ".git")
-			"pull" "origin" "master"))))
+  (let* ((git-cmd "git")
+	 (db-dir (directory-namestring (xdg-data-home)))
+	 (git-dir-cmd (concatenate 'string "--git-dir=" db-dir ".git"))
+	 (git-tree-cmd (concatenate 'string "--work-tree=" db-dir)))
+    (uiop:run-program `(,git-cmd ,git-tree-cmd ,git-dir-cmd
+				 "pull" "origin" "master"))))
 
 (define-command bookmark-db-push ()
   "Do a git push on the bookmark db repo. Assumes that (xdg-data-home) has been
