@@ -2,8 +2,8 @@
 
 ;; Setup the search engine "shortcut" IDs
 (setf (get-default 'window 'search-engines)
-      '(("google" . "https://www.google.com/search?q=~a")
-	("default" . "https://duckduckgo.com/?q=~a")
+      '(("default" . "https://duckduckgo.com/?q=~a")
+	("google" . "https://www.google.com/search?q=~a")
 	("quickdocs" . "https://quickdocs.org/search?q=~a")
 	("wiki" . "https://en.wikipedia.org/w/index.php?search=~a")
 	("define" . "https://en.wiktionary.org/w/index.php?search=~a")))
@@ -110,6 +110,9 @@ finishes."
 			  (directory-namestring(truename "~/")))))
     (buffer-set-url :url url :buffer (active-buffer *interface*))))
 
+;;
+;; Commands for bookmark-db management
+;;
 (define-command select-bookmark-db ()
   "Prompt the user to choose which bookmark database file they would like to
 use. If the file does not exist, create it, then set it as the active bookmark
@@ -129,6 +132,27 @@ database."
 	  (progn
 	    (ensure-file-exists path #'%initialize-bookmark-db)
 	    (setf (bookmark-db-path (rpc-window-active *interface*)) path))))))
+
+;; TODO: construct db-dir from bookmark-db-path global
+;; TODO: allow user to specify remote and branch
+;; TODO: display command output in minibuffer
+(define-command bookmark-db-pull ()
+  "Do a git pull on the bookmark db repo. Assumes that (xdg-data-home) has been
+setup as a repo for your bookmarks!"
+  (let ((git-cmd "git")
+	(db-dir (directory-namestring (xdg-data-home))))
+    (uiop:run-program `(,git-cmd
+			,(concatenate 'string "--git-dir=" db-dir ".git")
+			"pull" "origin" "master"))))
+
+(define-command bookmark-db-push ()
+  "Do a git push on the bookmark db repo. Assumes that (xdg-data-home) has been
+setup as a repo for your bookmarks!"
+  (let ((git-cmd "git")
+	(db-dir (directory-namestring (xdg-data-home))))
+    (uiop:run-program `(,git-cmd
+			,(concatenate 'string "--git-dir=" db-dir ".git")
+			"pull" "origin" "master"))))
 
 ;; (add-to-default-list (lambda ()
 ;; 		       (setf (get-default 'buffer 'box-style)
