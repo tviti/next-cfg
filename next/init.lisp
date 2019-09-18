@@ -74,14 +74,6 @@ makes the active buffer the default deletion (which is how Emacs does it)."
 (define-key :mode 'minibuffer-mode
   "C-[" #'cancel-input)
 
-;; Evil abbreviations for cmds
-(defmacro def-cmd-alias (alias original)
-  "This doesn't seem like the right way to do this"
-  `(progn
-     (define-command ,alias ()
-       (,original))
-     (setf (fdefinition ',alias) #',original)))
-
 (define-command my-set-url-new-buffer ()
   "This is a hack of the original next command, with a small sleep timer added
 because looks like the original tries to set url before buffer creation
@@ -101,6 +93,13 @@ finishes."
 	  (sleep 0.05) ;; our sleep timer hack
           (set-url url :buffer buffer))))))
 
+;; Evil abbreviations for cmds
+(defmacro def-cmd-alias (alias original)
+  "This doesn't seem like the right way to do this"
+  `(progn
+     (define-command ,alias ()
+       (,original))
+     (setf (fdefinition ',alias) #',original)))
 (def-cmd-alias b switch-buffer)
 (def-cmd-alias e my-set-url-new-buffer)
 
@@ -137,29 +136,30 @@ database."
 ;; TODO: construct db-dir from bookmark-db-path global
 ;; TODO: allow user to specify remote and branch
 ;; TODO: display command output in minibuffer
-(define-command bookmark-db-pull ()
-  "Do a git pull on the bookmark db repo. Assumes that (xdg-data-home) has been
-setup as a repo for your bookmarks!"
+;; TODO: password prompts
+(defun bookmark-db-git-cmd (cmd-list)
   (let* ((git-cmd "git")
 	 (db-dir (directory-namestring (xdg-data-home)))
 	 (git-dir-cmd (concatenate 'string "--git-dir=" db-dir ".git"))
 	 (git-tree-cmd (concatenate 'string "--work-tree=" db-dir)))
-    (uiop:run-program `(,git-cmd ,git-tree-cmd ,git-dir-cmd
-				 "pull" "origin" "master"))))
+    (uiop:run-program (concatenate 'list
+				   `(,git-cmd ,git-dir-cmd ,git-tree-cmd)
+				   cmd-list)
+		      :output :string
+		      :error-output :output
+		      :ignore-error-status t)))
+
+(define-command bookmark-db-pull ()
+  "Do a git pull on the bookmark db repo. Assumes that (xdg-data-home) has been
+setup as a repo for your bookmarks!"
+  (print (bookmark-db-git-cmd '("pull" "origin" "master"))))
 
 (define-command bookmark-db-push ()
   "Do a git push on the bookmark db repo. Assumes that (xdg-data-home) has been
 setup as a repo for your bookmarks!"
-  (let* ((git-cmd "git")
-	 (db-dir (directory-namestring (xdg-data-home)))
-	 (git-dir-cmd (concatenate 'string "--git-dir=" db-dir ".git"))
-	 (git-tree-cmd (concatenate 'string "--work-tree=" db-dir)))
-    (uiop:run-program `(,git-cmd ,git-dir-cmd ,git-tree-cmd
-			"add" "--update"))
-    (uiop:run-program `(,git-cmd ,git-dir-cmd ,git-tree-cmd
-			"commit" "-m" "\"Bookmark db update\""))
-    (uiop:run-program `(,git-cmd ,git-dir-cmd ,git-tree-cmd
-			"push" "origin" "master"))))
+  (print (bookmark-db-git-cmd '("add" "--update")))
+  (print (bookmark-db-git-cmd '("commit" "-m" "bookmark db update")))
+  (print (bookmark-db-git-cmd '("push" "origin" "master"))))
 
 ;; (add-to-default-list (lambda ()
 ;; 		       (setf (get-default 'buffer 'box-style)
