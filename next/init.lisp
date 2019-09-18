@@ -113,6 +113,7 @@ finishes."
 ;;
 ;; Commands for bookmark-db management
 ;;
+;; TODO: Should (select-bookmark-db) add new db to git repo file (if it exists)?
 (define-command select-bookmark-db ()
   "Prompt the user to choose which bookmark database file they would like to
 use. If the file does not exist, create it, then set it as the active bookmark
@@ -148,11 +149,16 @@ setup as a repo for your bookmarks!"
 (define-command bookmark-db-push ()
   "Do a git push on the bookmark db repo. Assumes that (xdg-data-home) has been
 setup as a repo for your bookmarks!"
-  (let ((git-cmd "git")
-	(db-dir (directory-namestring (xdg-data-home))))
-    (uiop:run-program `(,git-cmd
-			,(concatenate 'string "--git-dir=" db-dir ".git")
-			"pull" "origin" "master"))))
+  (let* ((git-cmd "git")
+	 (db-dir (directory-namestring (xdg-data-home)))
+	 (git-dir-cmd (concatenate 'string "--git-dir=" db-dir ".git"))
+	 (git-tree-cmd (concatenate 'string "--work-tree=" db-dir)))
+    (uiop:run-program `(,git-cmd ,git-dir-cmd ,git-tree-cmd
+			"add" "--update"))
+    (uiop:run-program `(,git-cmd ,git-dir-cmd ,git-tree-cmd
+			"commit" "-m" "\"Bookmark db update\""))
+    (uiop:run-program `(,git-cmd ,git-dir-cmd ,git-tree-cmd
+			"push" "origin" "master"))))
 
 ;; (add-to-default-list (lambda ()
 ;; 		       (setf (get-default 'buffer 'box-style)
