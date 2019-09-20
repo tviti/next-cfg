@@ -152,6 +152,8 @@ database."
 (define-command bookmark-db-pull ()
   "Do a git pull on the bookmark db repo. Assumes that (xdg-data-home) has been
 setup as a repo for your bookmarks!"
+  (print (bookmark-db-git-cmd '("add" "--update")))
+  (print (bookmark-db-git-cmd '("commit" "-m" "pre-pull")))
   (print (bookmark-db-git-cmd '("pull" "origin" "master"))))
 
 (define-command bookmark-db-push ()
