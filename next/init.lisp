@@ -7,7 +7,7 @@
 	("quickdocs" . "https://quickdocs.org/search?q=~a")
 	("wiki" . "https://en.wikipedia.org/w/index.php?search=~a")
 	("define" . "https://en.wiktionary.org/w/index.php?search=~a")
-	("python3" . "https://docs.python.org/3/search.html?q=~a"))
+	("python3" . "https://docs.python.org/3/search.html?q=~a")))
 
 
 ;; Unfortunately, if we launch from an application package (e.g. by double
@@ -113,6 +113,22 @@ finishes."
 ;;
 ;; Commands for bookmark-db management
 ;;
+;; TODO: construct db-dir from bookmark-db-path global
+;; TODO: allow user to specify remote and branch
+;; TODO: display command output in minibuffer
+;; TODO: password prompts
+(defun bookmark-db-git-cmd (cmd-list)
+  (let* ((git-cmd "git")
+	 (db-dir (directory-namestring (xdg-data-home)))
+	 (git-dir-cmd (concatenate 'string "--git-dir=" db-dir ".git"))
+	 (git-tree-cmd (concatenate 'string "--work-tree=" db-dir)))
+    (uiop:run-program (concatenate 'list
+				   `(,git-cmd ,git-dir-cmd ,git-tree-cmd)
+				   cmd-list)
+		      :output :string
+		      :error-output :output
+		      :ignore-error-status t)))
+
 ;; TODO: Should (select-bookmark-db) add new db to git repo file (if it exists)?
 (define-command select-bookmark-db ()
   "Prompt the user to choose which bookmark database file they would like to
@@ -132,23 +148,9 @@ database."
 	  (echo (format nil "~a is a directory! Nothing done!" path))
 	  (progn
 	    (ensure-file-exists path #'%initialize-bookmark-db)
-	    (setf (bookmark-db-path (rpc-window-active *interface*)) path))))))
-
-;; TODO: construct db-dir from bookmark-db-path global
-;; TODO: allow user to specify remote and branch
-;; TODO: display command output in minibuffer
-;; TODO: password prompts
-(defun bookmark-db-git-cmd (cmd-list)
-  (let* ((git-cmd "git")
-	 (db-dir (directory-namestring (xdg-data-home)))
-	 (git-dir-cmd (concatenate 'string "--git-dir=" db-dir ".git"))
-	 (git-tree-cmd (concatenate 'string "--work-tree=" db-dir)))
-    (uiop:run-program (concatenate 'list
-				   `(,git-cmd ,git-dir-cmd ,git-tree-cmd)
-				   cmd-list)
-		      :output :string
-		      :error-output :output
-		      :ignore-error-status t)))
+	    (setf (bookmark-db-path (rpc-window-active *interface*)) path)
+	    ;; Add to git repo in case the file was just created
+	    (print (bookmark-db-git-cmd `("add" ,(namestring path)))))))))
 
 (define-command bookmark-db-pull ()
   "Do a git pull on the bookmark db repo. Assumes that (xdg-data-home) has been
