@@ -6,7 +6,8 @@
 	("google" . "https://www.google.com/search?q=~a")
 	("quickdocs" . "https://quickdocs.org/search?q=~a")
 	("wiki" . "https://en.wikipedia.org/w/index.php?search=~a")
-	("define" . "https://en.wiktionary.org/w/index.php?search=~a")))
+	("define" . "https://en.wiktionary.org/w/index.php?search=~a")
+	("python3" . "https://docs.python.org/3/search.html?q=~a"))
 
 
 ;; Unfortunately, if we launch from an application package (e.g. by double
