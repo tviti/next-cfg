@@ -1,7 +1,7 @@
 (in-package :next)
 
 ;; Setup the search engine "shortcut" IDs
-(setf (get-default 'window 'search-engines)
+(setf (get-default 'remote-interface 'search-engines)
       '(("default" . "https://duckduckgo.com/?q=~a")
 	("google" . "https://www.google.com/search?q=~a")
 	("quickdocs" . "https://quickdocs.org/search?q=~a")
@@ -75,25 +75,6 @@ makes the active buffer the default deletion (which is how Emacs does it)."
 (define-key :mode 'minibuffer-mode
   "C-[" #'cancel-input)
 
-(define-command my-set-url-new-buffer ()
-  "This is a hack of the original next command, with a small sleep timer added
-because looks like the original tries to set url before buffer creation
-finishes."
-  (with-result (url (buffer-get-url))
-    (let ((history (minibuffer-set-url-history *interface*)))
-      (when history
-        (ring:insert history url))
-      (with-result (url (read-from-minibuffer
-                         (make-instance 'minibuffer
-                                        :input-prompt "Open URL in new buffer:"
-                                        :completion-function 'history-typed-complete
-                                        :history history
-                                        :empty-complete-immediate t)))
-        (let ((buffer (make-buffer)))
-	  (set-active-buffer *interface* buffer)
-	  (sleep 0.05) ;; our sleep timer hack
-          (set-url url :buffer buffer))))))
-
 ;; Evil abbreviations for cmds
 (defmacro def-cmd-alias (alias original)
   "This doesn't seem like the right way to do this"
@@ -102,7 +83,7 @@ finishes."
        (,original))
      (setf (fdefinition ',alias) #',original)))
 (def-cmd-alias b switch-buffer)
-(def-cmd-alias e my-set-url-new-buffer)
+(def-cmd-alias e set-url-new-buffer)
 
 (define-command open-home-dir ()
   "Open my home directory in a browser window"
@@ -148,7 +129,7 @@ database."
 	  (echo (format nil "~a is a directory! Nothing done!" path))
 	  (progn
 	    (ensure-file-exists path #'%initialize-bookmark-db)
-	    (setf (bookmark-db-path (rpc-window-active *interface*)) path)
+	    (setf (bookmark-db-path *interface*) path)
 	    ;; Add to git repo in case the file was just created
 	    (print (bookmark-db-git-cmd `("add" ,(namestring path)))))))))
 
