@@ -89,7 +89,7 @@ makes the active buffer the default deletion (which is how Emacs does it)."
   "Open my home directory in a browser window"
   (let ((url (concatenate 'string "file://"
 			  (directory-namestring(truename "~/")))))
-    (buffer-set-url :url url :buffer (active-buffer *interface*))))
+    (set-url url :buffer (active-buffer *interface*))))
 
 ;;
 ;; Commands for bookmark-db management
@@ -110,7 +110,6 @@ makes the active buffer the default deletion (which is how Emacs does it)."
 		      :error-output :output
 		      :ignore-error-status t)))
 
-;; TODO: Should (select-bookmark-db) add new db to git repo file (if it exists)?
 (define-command select-bookmark-db ()
   "Prompt the user to choose which bookmark database file they would like to
 use. If the file does not exist, create it, then set it as the active bookmark
