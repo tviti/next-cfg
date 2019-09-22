@@ -4,7 +4,7 @@
 (setf (get-default 'remote-interface 'search-engines)
       '(("default" . "https://duckduckgo.com/?q=~a")
 	("google" . "https://www.google.com/search?q=~a")
-	("quickdocs" . "https://quickdocs.org/search?q=~a")
+	("quickdocs" . "http://quickdocs.org/search?q=~a")
 	("wiki" . "https://en.wikipedia.org/w/index.php?search=~a")
 	("define" . "https://en.wiktionary.org/w/index.php?search=~a")
 	("python3" . "https://docs.python.org/3/search.html?q=~a")))
@@ -60,6 +60,19 @@ makes the active buffer the default deletion (which is how Emacs does it)."
                                        :input-prompt "Kill buffer:"
                                        :completion-function (my-buffer-completion-fn))))
     (rpc-buffer-delete *interface* buffer)))
+
+(define-command delete-all-buffers ()
+  "Delete ALL buffers, EXCEPT for the active buffer. I'd prefer to just delete
+ALL of them (even the active buffer), but Next doesn't seem to like it when the
+sole active buffer gets deleted."
+  (with-result (y-n (read-from-minibuffer
+		     (make-instance 'minibuffer
+				    :input-prompt "Are you sure you want to kill all buffers (y or n)?")))
+    (if (string-equal y-n "y")
+	(let* ((active-buffer (active-buffer *interface*))
+	       (b-list (alexandria:hash-table-values (buffers *interface*)))
+	       (b-list-bg (remove active-buffer b-list)))
+	  (mapcar (lambda (b) (rpc-buffer-delete *interface* b)) b-list-bg)))))
 
 ;; Make vi-normal the default keybinding scheme
 (add-to-default-list 'vi-normal-mode 'buffer 'default-modes)
