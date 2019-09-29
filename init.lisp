@@ -164,7 +164,7 @@ database. A git add is then performed on the selected file."
   (if (is-git-repo (bookmark-db-dir))
       (progn
 	(print (bookmark-db-git-cmd '("add" "--update")))
-	(print (bookmark-db-git-cmd '("commit" "-m" "pre-pull")))
+	(print (bookmark-db-git-cmd '("commit" "-m" "bookmark-db-pull")))
 	(print (bookmark-db-git-cmd '("pull" "origin" "master"))))
       (progn
 	(print (format nil "No repo at ~a !!!" (bookmark-db-dir)))
@@ -175,7 +175,7 @@ database. A git add is then performed on the selected file."
   (if (is-git-repo (bookmark-db-dir))
       (progn
 	(print (bookmark-db-git-cmd '("add" "--update")))
-	(print (bookmark-db-git-cmd '("commit" "-m" "bookmark db update")))
+	(print (bookmark-db-git-cmd '("commit" "-m" "bookmark-db-push")))
 	(print (bookmark-db-git-cmd '("push" "origin" "master"))))
       (progn
 	(print (format nil "No repo at ~a !!!" (bookmark-db-dir)))
