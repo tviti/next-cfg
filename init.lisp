@@ -111,12 +111,6 @@ e.g. from org-mode or an Rmarkdown doc)."
 ;; ssh-key for origin/master has already been added to the ssh-agent, hence
 ;; obviating the need for any username/password entry!
 ;;
-;; TODO: construct db-dir from bookmark-db-path global
-;; TODO: allow user to specify remote and branch
-;; TODO: display command output in minibuffer
-;; TODO: password prompts
-;; TODO: select-bookmark-db should glob for .db files
-;; TODO: cmd to move/copy bookmarks between .db files
 ;;
 (defun is-git-repo (path)
   "Returns path/.git if path contains a .git dir (and is hence assumed to be a
