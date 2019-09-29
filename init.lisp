@@ -9,6 +9,8 @@
 	("define" . "https://en.wiktionary.org/w/index.php?search=~a")
 	("python3" . "https://docs.python.org/3/search.html?q=~a")))
 
+;; Enable blocker mode in new browsers
+(add-to-default-list 'blocker-mode 'buffer 'default-modes)
 
 ;; Unfortunately, if we launch from an application package (e.g. by double
 ;; clicking Next.app) macOS doesn't seem to properly set the dbus session bus
@@ -116,25 +118,37 @@ e.g. from org-mode or an Rmarkdown doc)."
 ;; TODO: select-bookmark-db should glob for .db files
 ;; TODO: cmd to move/copy bookmarks between .db files
 ;;
+(defun is-git-repo (path)
+  "Returns path/.git if path contains a .git dir (and is hence assumed to be a
+  git repo). Returns nil otherwise."
+  (uiop:directory-exists-p (merge-pathnames path ".git")))
+
+(defun bookmark-db-dir ()
+  "Return path to the directory containing the active bookmark-db file."
+  (uiop:pathname-directory-pathname (bookmark-db-path *interface*)))
+
 (defun bookmark-db-git-cmd (cmd-list)
+  "Run `git cmd-list` with the dir containing the current bookmark-db as repo."
   (let* ((git-cmd "git")
-	 (db-dir (directory-namestring (xdg-data-home)))
-	 (git-dir-cmd (concatenate 'string "--git-dir=" db-dir ".git"))
-	 (git-tree-cmd (concatenate 'string "--work-tree=" db-dir)))
+	 (db-dir (bookmark-db-dir))
+	 (git-dir-opt (format nil "--git-dir=~a.git" db-dir))
+	 (git-tree-opt (format nil "--work-tree=~a" db-dir)))
     (uiop:run-program (concatenate 'list
-				   `(,git-cmd ,git-dir-cmd ,git-tree-cmd)
+				   `(,git-cmd ,git-dir-opt ,git-tree-opt)
 				   cmd-list)
 		      :output :string
 		      :error-output :output
 		      :ignore-error-status t)))
 
+
 (define-command select-bookmark-db ()
   "Prompt the user to choose which bookmark database file they would like to
 use. If the file does not exist, create it, then set it as the active bookmark
 database. A git add is then performed on the selected file."
-  (let ((bookmark-db-path (xdg-data-home)))
-    ;; Can this be done w/out setting a global var?
-    (setf next/file-manager-mode::*current-directory* bookmark-db-path)
+  (let* ((bookmark-db-path (bookmark-db-path *interface*))
+	 (bookmark-db-dir (uiop:pathname-directory-pathname bookmark-db-path)))
+    ;; TODO: Can this be done w/out setting a global var?
+    (setf next/file-manager-mode::*current-directory* bookmark-db-dir)
     (with-result (path (read-from-minibuffer
 			(make-instance 'minibuffer
 				       :default-modes '(next/file-manager-mode::file-manager-mode minibuffer-mode)
@@ -147,22 +161,29 @@ database. A git add is then performed on the selected file."
 	  (progn
 	    (ensure-file-exists path #'%initialize-bookmark-db)
 	    (setf (bookmark-db-path *interface*) path)
-	    ;; Add to git repo in case the file was just created
-	    (print (bookmark-db-git-cmd `("add" ,(namestring path)))))))))
+	    (if (is-git-repo bookmark-db-dir) 
+		;; Add to git repo in case the file was just created
+		(print (bookmark-db-git-cmd `("add" ,(namestring path))))))))))
 
 (define-command bookmark-db-pull ()
-  "Do a git pull on the bookmark db repo. Assumes that (xdg-data-home) has been
-setup as a repo for your bookmarks!"
-  (print (bookmark-db-git-cmd '("add" "--update")))
-  (print (bookmark-db-git-cmd '("commit" "-m" "pre-pull")))
-  (print (bookmark-db-git-cmd '("pull" "origin" "master"))))
+  "Do a git pull on the bookmark db repo. Return 'nil if there is no repo."
+  (if (is-git-repo (bookmark-db-dir))
+      (progn
+	(print (bookmark-db-git-cmd '("add" "--update")))
+	(print (bookmark-db-git-cmd '("commit" "-m" "pre-pull")))
+	(print (bookmark-db-git-cmd '("pull" "origin" "master"))))
+      (progn
+	(print (format nil "No repo at ~a !!!" (bookmark-db-dir)))
+	'nil)))
 
 (define-command bookmark-db-push ()
-  "Do a git push on the bookmark db repo. Assumes that (xdg-data-home) has been
-setup as a repo for your bookmarks!"
-  (print (bookmark-db-git-cmd '("add" "--update")))
-  (print (bookmark-db-git-cmd '("commit" "-m" "bookmark db update")))
-  (print (bookmark-db-git-cmd '("push" "origin" "master"))))
+  "Do a git push on the bookmark db repo. Return 'nil if there is no repo."
+  (if (is-git-repo (bookmark-db-dir))
+      (progn
+	(print (bookmark-db-git-cmd '("add" "--update")))
+	(print (bookmark-db-git-cmd '("commit" "-m" "bookmark db update")))
+	(print (bookmark-db-git-cmd '("push" "origin" "master"))))
+      (progn
+	(print (format nil "No repo at ~a !!!" (bookmark-db-dir)))
+	'nil)))
 		      
-;; Enable blocker mode in new browsers
-(add-to-default-list 'blocker-mode 'buffer 'default-modes)
