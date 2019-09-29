@@ -16,12 +16,12 @@
 ;; instead have to figure out where the bus socket is by querying launchd, then
 ;; set all the env vars ourselves. NOTE: The following is sbcl specific!
 (if (string-equal (software-type) "Darwin")
-    (let
-	((sock_path (string-trim " 
-" ;; Trim the newline from the cmd result (very gross syntax, but portable...)
-				 (uiop:run-program
-				  '("launchctl" "getenv" "DBUS_LAUNCHD_SESSION_BUS_SOCKET")
-				  :output :string))))
+    (let ((sock_path (string-trim " 
+" ;; Trim \n from cmd result (gross, but portable...)
+				  (uiop:run-program
+				   '("launchctl" "getenv"
+				     "DBUS_LAUNCHD_SESSION_BUS_SOCKET")
+				   :output :string))))
       (sb-posix:setenv "DBUS_LAUNCHD_SESSION_BUS_SOCKET" sock_path 1)
       (sb-posix:setenv "DBUS_SESSION_BUS_ADDRESS"
 		       (concatenate 'string "unix:path=" sock_path) 1)))
@@ -29,9 +29,9 @@
 ;; As an alternative, we can also try just create a new session bus, just for
 ;; next to use (then set the address env var so the port knows where to listen).
 ;; (let ((sock-addr "unix:path=/tmp/dbus/bus"))
-;;   (setq +dbus-launch-command+ (list "dbus-daemon"
-;; 				    "--session"
-;; 				    (concatenate 'string "--address=" sock-addr)
+;;   (setq +dbus-launch-command+ (list "dbus-daemon" "--session"
+;; 				    (concatenate 'string
+;; 						 "--address=" sock-addr)
 ;; 				    "--fork"))
 ;;   (sb-posix:setenv "DBUS_SESSION_BUS_ADDRESS" sock-addr 1))
 
@@ -45,16 +45,14 @@
   (let ((buffers (alexandria:hash-table-values (buffers *interface*)))
         (active-buffer (active-buffer *interface*)))
     ;; Make the active buffer the first buffer in the list
-    (when (not (equal (first buffers)
-		      active-buffer))
+    (when (not (equal (first buffers) active-buffer))
       (push active-buffer buffers))
-    (lambda (input)
-      (fuzzy-match input buffers))))
+    (lambda (input) (fuzzy-match input buffers))))
 
 (define-command my-delete-buffer ()
   "Delete the buffer via minibuffer input. This is basically identical to the
-original implementatino, but uses a slightly modified completion function that
-makes the active buffer the default deletion (which is how Emacs does it)."
+original implementation, but uses a slightly modified completion function that
+makes the active buffer the default deletion (i.e. how it is in Emacs)."
   (with-result (buffer (read-from-minibuffer
                         (make-instance 'minibuffer
                                        :input-prompt "Kill buffer:"
@@ -77,7 +75,7 @@ sole active buffer gets deleted."
 ;; Make vi-normal the default keybinding scheme
 (add-to-default-list 'vi-normal-mode 'buffer 'default-modes)
 
-;; Edit vi-normal a bit to make it more evil
+;; Edit keybindings a bit to make them more consistent with Emacs + evil-mode
 (define-key :scheme :vi-normal
   "C-x k" #'my-delete-buffer)
 
@@ -88,29 +86,35 @@ sole active buffer gets deleted."
 (define-key :mode 'minibuffer-mode
   "C-[" #'cancel-input)
 
-;; Evil abbreviations for cmds
+;; Create ex abbreviations for cmds. I'm aware that my def-cmd-alias macro is a
+;; dirty hack, and would appreciate advice for a better way to do this.
 (defmacro def-cmd-alias (alias original)
   "This doesn't seem like the right way to do this"
   `(progn
-     (define-command ,alias ()
-       (,original))
+     (define-command ,alias () (,original))
      (setf (fdefinition ',alias) #',original)))
+;; Create the abreviations
 (def-cmd-alias b switch-buffer)
 (def-cmd-alias e set-url-new-buffer)
 
 (define-command open-home-dir ()
-  "Open my home directory in a browser window"
+  "Open my home directory in a browser window (useful for viewing html exports
+e.g. from org-mode or an Rmarkdown doc)."
   (let ((url (concatenate 'string "file://"
-			  (directory-namestring(truename "~/")))))
+			  (directory-namestring (truename "~/")))))
     (set-url url :buffer (active-buffer *interface*))))
 
 ;;
-;; Commands for bookmark-db management
+;; Commands for bookmark-db management. These commands all assume that the
+;; ssh-key for origin/master has already been added to the ssh-agent, hence
+;; obviating the need for any username/password entry!
 ;;
 ;; TODO: construct db-dir from bookmark-db-path global
 ;; TODO: allow user to specify remote and branch
 ;; TODO: display command output in minibuffer
 ;; TODO: password prompts
+;; TODO: select-bookmark-db should glob for .db files
+;;
 (defun bookmark-db-git-cmd (cmd-list)
   (let* ((git-cmd "git")
 	 (db-dir (directory-namestring (xdg-data-home)))
@@ -126,7 +130,7 @@ sole active buffer gets deleted."
 (define-command select-bookmark-db ()
   "Prompt the user to choose which bookmark database file they would like to
 use. If the file does not exist, create it, then set it as the active bookmark
-database."
+database. A git add is then performed on the selected file."
   (let ((bookmark-db-path (xdg-data-home)))
     ;; Can this be done w/out setting a global var?
     (setf next/file-manager-mode::*current-directory* bookmark-db-path)
@@ -158,14 +162,6 @@ setup as a repo for your bookmarks!"
   (print (bookmark-db-git-cmd '("add" "--update")))
   (print (bookmark-db-git-cmd '("commit" "-m" "bookmark db update")))
   (print (bookmark-db-git-cmd '("push" "origin" "master"))))
-
-;; (add-to-default-list (lambda ()
-;; 		       (setf (get-default 'buffer 'box-style)
-;; 			     (with-open-file (stream "~/.config/next/GitHub-Dark/github-dark.user.css")
-;; 			       (let ((contents (make-string (file-length stream))))
-;; 				 (read-sequence contents stream)
-;; 				 contents))))
-;; 		     'buffer 'load-hook)
 		      
 ;; Enable blocker mode in new browsers
 (add-to-default-list 'blocker-mode 'buffer 'default-modes)
