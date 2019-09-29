@@ -114,6 +114,7 @@ e.g. from org-mode or an Rmarkdown doc)."
 ;; TODO: display command output in minibuffer
 ;; TODO: password prompts
 ;; TODO: select-bookmark-db should glob for .db files
+;; TODO: cmd to move/copy bookmarks between .db files
 ;;
 (defun bookmark-db-git-cmd (cmd-list)
   (let* ((git-cmd "git")
