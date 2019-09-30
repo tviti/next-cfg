@@ -208,12 +208,35 @@ of the selected entry."
   committed before and after the copy operation. Upon completion, the starting
   db remains the active one."
   (let ((origin-db-path (bookmark-db-path *interface*)))
+    (print (bookmark-db-git-cmd '("add" "--update")))
+    (print (bookmark-db-git-cmd '("commit" "-m" "bookmark-db-cp start")))
     (with-result* ((entry (query-bookmark-db-entry))
 		   (dest-db-path (query-file-path (bookmark-db-dir))))
       (set-bookmark-db dest-db-path)
-      (print (bookmark-db-git-cmd '("add" "--update")))
-      (print (bookmark-db-git-cmd '("commit" "-m" "bookmark-db-cp start")))
       (%bookmark-url entry)
+      (set-bookmark-db origin-db-path)
       (print (bookmark-db-git-cmd '("add" "--update")))
-      (print (bookmark-db-git-cmd '("commit" "-m" "bookmark-db-cp end")))
-      (set-bookmark-db origin-db-path))))
+      (print (bookmark-db-git-cmd '("commit" "-m" "bookmark-db-cp end"))))))
+
+(define-command bookmark-db-mv ()
+  "Move a bookmark from the active db to another. The repo state will be
+  committed before and after the copy operation. Upon completion, the starting
+  db remains the active one."
+  (let ((origin-db-path (bookmark-db-path *interface*)))
+    (print (bookmark-db-git-cmd '("add" "--update")))
+    (print (bookmark-db-git-cmd '("commit" "-m" "bookmark-db-mv start")))
+    (with-result* ((entry (query-bookmark-db-entry))
+		   (dest-db-path (query-file-path (bookmark-db-dir))))
+      (set-bookmark-db dest-db-path)
+      (%bookmark-url entry)
+      (set-bookmark-db origin-db-path)
+      ;; This is ripped from the body of (bookmark-delete)
+      (let ((db (sqlite:connect
+                 (ensure-file-exists (bookmark-db-path *interface*)
+                                     #'%initialize-bookmark-db))))
+        ;; TODO: We should execute only one DB query.
+        (sqlite:execute-non-query
+         db "delete from bookmarks where url = ?" entry)
+        (sqlite:disconnect db))
+      (print (bookmark-db-git-cmd '("add" "--update")))
+      (print (bookmark-db-git-cmd '("commit" "-m" "bookmark-db-cp end"))))))
