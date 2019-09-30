@@ -134,6 +134,30 @@ e.g. from org-mode or an Rmarkdown doc)."
 		      :error-output :output
 		      :ignore-error-status t)))
 
+(defun set-bookmark-db (path)
+  "Set the current active bookmark-db (i.e. (bookmark-db *interface*) to
+path. If path lives in a git repo, call `git add path`."
+  (ensure-file-exists path #'%initialize-bookmark-db)
+  (setf (bookmark-db-path *interface*) path)
+  (if (is-git-repo path) 
+      ;; Add to git repo in case the file was just created
+      (bookmark-db-git-cmd `("add" ,(namestring path)))))
+
+(defun query-file-path (start-dir
+			&key (prompt-base "Path:") callback)
+  "Drop into dir, and then start a minibuffer file query. Returns the path to
+the selected file. This function is intended to be used in a call to
+with-result."
+  ;; TODO: Can this be done w/out mucking w/ a global var?
+  (setf next/file-manager-mode::*current-directory* start-dir)
+  (let ((directory next/file-manager-mode::*current-directory*))
+    (read-from-minibuffer
+     (make-instance 'minibuffer
+		    :callback callback
+		    :default-modes '(next/file-manager-mode::file-manager-mode minibuffer-mode)
+		    :input-prompt (format nil "~a~a" prompt-base (file-namestring directory))
+		    :empty-complete-immediate t
+		    :completion-function #'next/file-manager-mode::open-file-from-directory-completion-fn))))
 
 (define-command select-bookmark-db ()
   "Prompt the user to choose which bookmark database file they would like to
@@ -141,23 +165,12 @@ use. If the file does not exist, create it, then set it as the active bookmark
 database. A git add is then performed on the selected file."
   (let* ((bookmark-db-path (bookmark-db-path *interface*))
 	 (bookmark-db-dir (uiop:pathname-directory-pathname bookmark-db-path)))
-    ;; TODO: Can this be done w/out setting a global var?
-    (setf next/file-manager-mode::*current-directory* bookmark-db-dir)
-    (with-result (path (read-from-minibuffer
-			(make-instance 'minibuffer
-				       :default-modes '(next/file-manager-mode::file-manager-mode minibuffer-mode)
-				       :input-prompt "path:"
-				       :empty-complete-immediate t
-				       :completion-function #'next/file-manager-mode::open-file-from-directory-completion-fn)))
+    (with-result (path (query-file-path bookmark-db-dir
+					:prompt-base "Bookmark-db file: "))
       (if (uiop:directory-pathname-p path)
 	  ;; TODO: This echo statement currently doesn't show anything...
 	  (echo (format nil "~a is a directory! Nothing done!" path))
-	  (progn
-	    (ensure-file-exists path #'%initialize-bookmark-db)
-	    (setf (bookmark-db-path *interface*) path)
-	    (if (is-git-repo bookmark-db-dir) 
-		;; Add to git repo in case the file was just created
-		(print (bookmark-db-git-cmd `("add" ,(namestring path))))))))))
+	  (print (set-bookmark-db path))))))
 
 (define-command bookmark-db-pull ()
   "Do a git pull on the bookmark db repo. Return 'nil if there is no repo."
