@@ -68,12 +68,19 @@
     ssh, and that the requisite ssh-key has already been added to the ssh-agent
     (i.e. they are very primitive, and rely on the assumption that you will not
     be prompted for a username/password at any point when calling =git=).
+
+    The commands ~bookmark-db-cp~ and ~bookmark-db-mv~ can be used to duplicate
+    and move bookmarks (resp.) between your different database files. They will
+    first prompt the user for an entry in the currently active bookmark
+    database, then for a path to the destination database. The state of the
+    bookmark repo is committed at the start of the command (before any changes
+    have occurred), and then upon command completion. Like ~select-bookmark-db~,
+    the destination database will be created and added to the repo if it does
+    not already exist.
 **** TODO Allow user to specify remote and branch
 **** TODO Display git command output in minibuffer
 **** TODO Password prompts
 **** TODO Select-bookmark-db should glob for .db files
-**** TODO Add a cmd to move/copy bookmarks between .db files
-
 ** =README.org= TODO-list
 *** TODO Literate style init file?
     Vindarel's /literate style/ init file using =erudite= is really damned
