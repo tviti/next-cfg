@@ -78,9 +78,9 @@
     have occurred), and then upon command completion. Like ~select-bookmark-db~,
     the destination database will be created and added to the repo if it does
     not already exist.
-**** TODO Better system for git interaction
+**** TODO Better system for git interaction 
      - I can't help but feel that the current system is a little excessive with
-     commit frequency.
+       commit frequency.
 **** TODO Should we use command hooks for git interaction?
      - It may be elegant to call the start/end repo updates in the entry/exit
        command hooks (e.g. for ~bookmark-db-mv~ and ~bookmark-db-cp~). One

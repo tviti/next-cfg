@@ -1,27 +1,27 @@
 
 # Table of Contents
 
-1.  [next-cfg](#orgea61b82):next_browser:
-    1.  [Author: Taylor Viti](#org8669484)
-    2.  [Note about versions](#org6790cc3)
-    3.  [Features](#orgf7b888c)
-        1.  [Automatically determine the `dbus` socket's location on macOS](#org70ad313)
-        2.  [Make buffer deletion prompt more consistent w/ Emacs](#orgf6debe8)
-        3.  [`delete-all-buffers`](#org771a941)
-        4.  [`open-home-dir`](#org0a006b6)
-        5.  [Vim `ex` style command abbreviations](#orgeb3b645)
-        6.  [Use `C-[` like `ESCAPE`](#org98f4d92)
-        7.  ["Hot-swapping" and version controlling `bookmark-db` files](#org37002fe):bookmarks:
-    4.  [`README.org` TODO-list](#org3fc3ecb)
-        1.  [Literate style init file?](#orgcf00655)
+1.  [next-cfg](#orgc5bc76e):next_browser:
+    1.  [Author: Taylor Viti](#org72a2303)
+    2.  [Note about versions](#orgc10783b)
+    3.  [Features](#org9f524f2)
+        1.  [Automatically determine the `dbus` socket's location on macOS](#org25b391c)
+        2.  [Make buffer deletion prompt more consistent w/ Emacs](#orgdd18543)
+        3.  [`delete-all-buffers`](#orgf7125d8)
+        4.  [`open-home-dir`](#orgf2f2aa5)
+        5.  [Vim `ex` style command abbreviations](#org1cc4ff2)
+        6.  [Use `C-[` like `ESCAPE`](#orga7700c1)
+        7.  ["Hot-swapping" and version controlling `bookmark-db` files](#orgb92e866):bookmarks:
+    4.  [`README.org` TODO-list](#org779777a)
+        1.  [Literate style init file?](#org87f3c21)
 
 
-<a id="orgea61b82"></a>
+<a id="orgc5bc76e"></a>
 
 # next-cfg     :next_browser:
 
 
-<a id="org8669484"></a>
+<a id="org72a2303"></a>
 
 ## Author: Taylor Viti
 
@@ -33,7 +33,7 @@ For more information on `next-browser`, see:
 -   <https://github.com/atlas-engineer/next/blob/master/documents/MANUAL.org>
 
 
-<a id="org6790cc3"></a>
+<a id="orgc10783b"></a>
 
 ## Note about versions
 
@@ -44,12 +44,12 @@ the `next-browser` repo). From what I can tell, this is due to the switch to
 haven't spent a whole lot of time debugging so far.
 
 
-<a id="orgf7b888c"></a>
+<a id="org9f524f2"></a>
 
 ## Features
 
 
-<a id="org70ad313"></a>
+<a id="org25b391c"></a>
 
 ### Automatically determine the `dbus` socket's location on macOS
 
@@ -59,7 +59,7 @@ be pointing to the wrong location, so I query the value of the latter and
 then use it to set the former when `next` starts
 
 
-<a id="orgf6debe8"></a>
+<a id="orgdd18543"></a>
 
 ### Make buffer deletion prompt more consistent w/ Emacs
 
@@ -72,7 +72,7 @@ Emacs behavior (the command implementing this is un-creatively termed
 `my-delete-buffer`).
 
 
-<a id="org771a941"></a>
+<a id="orgf7125d8"></a>
 
 ### `delete-all-buffers`
 
@@ -80,7 +80,7 @@ The command `delete-all-buffers` will delete ALL buffers except for the
 currently active one.
 
 
-<a id="org0a006b6"></a>
+<a id="orgf2f2aa5"></a>
 
 ### `open-home-dir`
 
@@ -89,7 +89,7 @@ to me, so when I need to open a local `html` file, I often just start by
 calling `open-home-dir`, and then link-hint my way to where I need to be.
 
 
-<a id="orgeb3b645"></a>
+<a id="org1cc4ff2"></a>
 
 ### Vim `ex` style command abbreviations
 
@@ -104,7 +104,7 @@ actually take args in `next`.
     dirty hack, so I should redo that at some point.
 
 
-<a id="org98f4d92"></a>
+<a id="orga7700c1"></a>
 
 ### Use `C-[` like `ESCAPE`
 
@@ -112,7 +112,7 @@ This one isn't an *actual* alias for `ESCAPE`, but will do the same thing in
 `vi-normal-mode`, `vi-insert-mode`, and `minibuffer-mode`.
 
 
-<a id="org37002fe"></a>
+<a id="orgb92e866"></a>
 
 ### "Hot-swapping" and version controlling `bookmark-db` files     :bookmarks:
 
@@ -152,8 +152,7 @@ not already exist.
 1.  TODO Better system for git interaction
 
     -   I can't help but feel that the current system is a little excessive with
-    
-    commit frequency.
+        commit frequency.
 
 2.  TODO Should we use command hooks for git interaction?
 
@@ -173,12 +172,12 @@ not already exist.
 6.  TODO Select-bookmark-db should glob for .db files
 
 
-<a id="org3fc3ecb"></a>
+<a id="org779777a"></a>
 
 ## `README.org` TODO-list
 
 
-<a id="orgcf00655"></a>
+<a id="org87f3c21"></a>
 
 ### TODO Literate style init file?
 
