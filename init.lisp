@@ -141,7 +141,7 @@ e.g. from org-mode or an Rmarkdown doc)."
   (if (is-git-repo (bookmark-db-dir))
       (progn
 	(print (bookmark-db-git-cmd '("add" "--update")))
-	(print (bookmark-db-git-cmd '("commit" "-m" "bookmark-db-cp start"))))
+	(print (bookmark-db-git-cmd `("commit" "-m" ,msg))))
       (progn
 	(print (format nil "No repo at ~a !!!" (bookmark-db-dir)))
 	'nil)))
@@ -151,7 +151,7 @@ e.g. from org-mode or an Rmarkdown doc)."
 path. If path lives in a git repo, call `git add path`."
   (ensure-file-exists path #'%initialize-bookmark-db)
   (setf (bookmark-db-path *interface*) path)
-  (if (is-git-repo path) 
+  (if (is-git-repo (bookmark-db-dir))
       ;; Add to git repo in case the file was just created
       (bookmark-db-git-cmd `("add" ,(namestring path)))))
 
@@ -182,29 +182,20 @@ database. A git add is then performed on the selected file."
       (if (uiop:directory-pathname-p path)
 	  ;; TODO: This echo statement currently doesn't show anything...
 	  (echo (format nil "~a is a directory! Nothing done!" path))
-	  (print (set-bookmark-db path))))))
+	  (progn (print (set-bookmark-db path))
+		 (bookmark-db-commit (format nil "select-bookmark-db on ~a" path)))))))
 
 (define-command bookmark-db-pull ()
   "Do a git pull on the bookmark db repo. Return 'nil if there is no repo."
-  (if (is-git-repo (bookmark-db-dir))
-      (progn
-	(print (bookmark-db-git-cmd '("add" "--update")))
-	(print (bookmark-db-git-cmd '("commit" "-m" "bookmark-db-pull")))
-	(print (bookmark-db-git-cmd '("pull" "origin" "master"))))
-      (progn
-	(print (format nil "No repo at ~a !!!" (bookmark-db-dir)))
-	'nil)))
+  (if (bookmark-db-commit "bookmark-db-pull")
+	(print (bookmark-db-git-cmd '("pull" "origin" "master")))
+	'nil))
 
 (define-command bookmark-db-push ()
   "Do a git push on the bookmark db repo. Return 'nil if there is no repo."
-  (if (is-git-repo (bookmark-db-dir))
-      (progn
-	(print (bookmark-db-git-cmd '("add" "--update")))
-	(print (bookmark-db-git-cmd '("commit" "-m" "bookmark-db-push")))
-	(print (bookmark-db-git-cmd '("push" "origin" "master"))))
-      (progn
-	(print (format nil "No repo at ~a !!!" (bookmark-db-dir)))
-	'nil)))
+  (if (bookmark-db-commit "bookmark-db-push")
+	(print (bookmark-db-git-cmd '("push" "origin" "master")))
+	'nil))
 		      
 (defun query-bookmark-db-entry (&key callback)
   "Ask the user to select an entry from the active bookmark-db. Return the url
@@ -220,23 +211,20 @@ of the selected entry."
   committed before and after the copy operation. Upon completion, the starting
   db remains the active one."
   (let ((origin-db-path (bookmark-db-path *interface*)))
-    (print (bookmark-db-git-cmd '("add" "--update")))
-    (print (bookmark-db-git-cmd '("commit" "-m" "bookmark-db-cp start")))
+    (bookmark-db-commit "bookmark-db-cp start")
     (with-result* ((entry (query-bookmark-db-entry))
 		   (dest-db-path (query-file-path (bookmark-db-dir))))
       (set-bookmark-db dest-db-path)
       (%bookmark-url entry)
       (set-bookmark-db origin-db-path)
-      (print (bookmark-db-git-cmd '("add" "--update")))
-      (print (bookmark-db-git-cmd '("commit" "-m" "bookmark-db-cp end"))))))
+      (bookmark-db-commit "bookmark-db-cp end"))))
 
 (define-command bookmark-db-mv ()
   "Move a bookmark from the active db to another. The repo state will be
   committed before and after the copy operation. Upon completion, the starting
   db remains the active one."
   (let ((origin-db-path (bookmark-db-path *interface*)))
-    (print (bookmark-db-git-cmd '("add" "--update")))
-    (print (bookmark-db-git-cmd '("commit" "-m" "bookmark-db-mv start")))
+    (bookmark-db-commit "bookmark-db-mv start")
     (with-result* ((entry (query-bookmark-db-entry))
 		   (dest-db-path (query-file-path (bookmark-db-dir))))
       (set-bookmark-db dest-db-path)
@@ -250,5 +238,4 @@ of the selected entry."
         (sqlite:execute-non-query
          db "delete from bookmarks where url = ?" entry)
         (sqlite:disconnect db))
-      (print (bookmark-db-git-cmd '("add" "--update")))
-      (print (bookmark-db-git-cmd '("commit" "-m" "bookmark-db-cp end"))))))
+      (bookmark-db-commit "bookmark-db-mv end"))))
