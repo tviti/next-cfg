@@ -1,13 +1,18 @@
 * next-cfg                                                     :next_browser:
 ** Author: Taylor Viti
 
-A repo for version controlling my =next-browser= init/config file(s).
+   A repo for version controlling my =next-browser= init/config file(s).
 
-For more information on =next-browser=, see:
+   For more information on =next-browser=, see:
 
-- https://github.com/next-browser/next
-- https://github.com/atlas-engineer/next/blob/master/documents/MANUAL.org
-
+   - https://github.com/next-browser/next
+   - https://github.com/atlas-engineer/next/blob/master/documents/MANUAL.org
+** Note about versions
+   This config works with latest =next-browser= *release* v1.3.2, but seems to
+   be broken when run with the latest *dev version* (i.e. the master branch of
+   the =next-browser= repo). From what I can tell, this is due to the switch to
+   /functional/ style configurations (see [[https://github.com/atlas-engineer/next/issues/419][this issue ticket]]), but I honestly
+   haven't spent a whole lot of time debugging so far.
 ** Features
 *** Automatically determine the =dbus= socket's location on macOS
     macOS doesn't define the env var =DBUS_SESSION_BUS_ADDRESS= on it's own, and
