@@ -194,3 +194,26 @@ database. A git add is then performed on the selected file."
 	(print (format nil "No repo at ~a !!!" (bookmark-db-dir)))
 	'nil)))
 		      
+(defun query-bookmark-db-entry (&key callback)
+  "Ask the user to select an entry from the active bookmark-db. Return the url
+of the selected entry."
+  (read-from-minibuffer
+   (make-instance 'minibuffer
+		  :input-prompt "Select bookmark:"
+		  :completion-function 'bookmark-complete
+		  :callback callback)))
+
+(define-command bookmark-db-cp ()
+  "Copy a bookmark from the active db to another. The repo state will be
+  committed before and after the copy operation. Upon completion, the starting
+  db remains the active one."
+  (let ((origin-db-path (bookmark-db-path *interface*)))
+    (with-result* ((entry (query-bookmark-db-entry))
+		   (dest-db-path (query-file-path (bookmark-db-dir))))
+      (set-bookmark-db dest-db-path)
+      (print (bookmark-db-git-cmd '("add" "--update")))
+      (print (bookmark-db-git-cmd '("commit" "-m" "bookmark-db-cp start")))
+      (%bookmark-url entry)
+      (print (bookmark-db-git-cmd '("add" "--update")))
+      (print (bookmark-db-git-cmd '("commit" "-m" "bookmark-db-cp end")))
+      (set-bookmark-db origin-db-path))))
