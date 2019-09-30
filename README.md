@@ -1,27 +1,27 @@
 
 # Table of Contents
 
-1.  [next-cfg](#orgc5bc76e):next_browser:
-    1.  [Author: Taylor Viti](#org72a2303)
-    2.  [Note about versions](#orgc10783b)
-    3.  [Features](#org9f524f2)
-        1.  [Automatically determine the `dbus` socket's location on macOS](#org25b391c)
-        2.  [Make buffer deletion prompt more consistent w/ Emacs](#orgdd18543)
-        3.  [`delete-all-buffers`](#orgf7125d8)
-        4.  [`open-home-dir`](#orgf2f2aa5)
-        5.  [Vim `ex` style command abbreviations](#org1cc4ff2)
-        6.  [Use `C-[` like `ESCAPE`](#orga7700c1)
-        7.  ["Hot-swapping" and version controlling `bookmark-db` files](#orgb92e866):bookmarks:
-    4.  [`README.org` TODO-list](#org779777a)
-        1.  [Literate style init file?](#org87f3c21)
+1.  [next-cfg](#orgb2063c1):next_browser:
+    1.  [Author: Taylor Viti](#orgcfde60b)
+    2.  [Note about versions](#orge982d3f)
+    3.  [Features](#orgb79be06)
+        1.  [Automatically determine the `dbus` socket's location on macOS](#orgdd51e84)
+        2.  [Make buffer deletion prompt more consistent w/ Emacs](#org7789160)
+        3.  [`delete-all-buffers`](#orgd239ac1)
+        4.  [`open-home-dir`](#orgf74d01a)
+        5.  [Vim `ex` style command abbreviations](#orgb813610)
+        6.  [Use `C-[` like `ESCAPE`](#org861db1a)
+        7.  ["Hot-swapping" and version controlling `bookmark-db` files](#org644cd97):bookmarks:
+    4.  [`README.org` TODO-list](#orgc2e7a66)
+        1.  [Literate style init file?](#org6305d51)
 
 
-<a id="orgc5bc76e"></a>
+<a id="orgb2063c1"></a>
 
 # next-cfg     :next_browser:
 
 
-<a id="org72a2303"></a>
+<a id="orgcfde60b"></a>
 
 ## Author: Taylor Viti
 
@@ -33,23 +33,27 @@ For more information on `next-browser`, see:
 -   <https://github.com/atlas-engineer/next/blob/master/documents/MANUAL.org>
 
 
-<a id="orgc10783b"></a>
+<a id="orge982d3f"></a>
 
 ## Note about versions
 
-This config works with latest `next-browser` **release** v1.3.2, but seems to
+This config works up til `next-browser` v1.3.2 [commit df99518](https://github.com/atlas-engineer/next/commit/df99518f03d1bb01c0a95b9cfa385af26cc39a2e), but seems to
 be broken when run with the latest **dev version** (i.e. the master branch of
-the `next-browser` repo). From what I can tell, this is due to the switch to
+the `next-browser` repo). It may work with further commits, but is only
+tested up to that particular one (the latest as of this writing, [commit
+628680f](https://github.com/atlas-engineer/next/commit/628680f9b396513a3874bf00084042f5a07bee4f), is unusable).
+
+From what I can tell, this is due to the switch to
 *functional* style configurations (see [this issue ticket](https://github.com/atlas-engineer/next/issues/419)), but I honestly
 haven't spent a whole lot of time debugging so far.
 
 
-<a id="org9f524f2"></a>
+<a id="orgb79be06"></a>
 
 ## Features
 
 
-<a id="org25b391c"></a>
+<a id="orgdd51e84"></a>
 
 ### Automatically determine the `dbus` socket's location on macOS
 
@@ -59,7 +63,7 @@ be pointing to the wrong location, so I query the value of the latter and
 then use it to set the former when `next` starts
 
 
-<a id="orgdd18543"></a>
+<a id="org7789160"></a>
 
 ### Make buffer deletion prompt more consistent w/ Emacs
 
@@ -72,7 +76,7 @@ Emacs behavior (the command implementing this is un-creatively termed
 `my-delete-buffer`).
 
 
-<a id="orgf7125d8"></a>
+<a id="orgd239ac1"></a>
 
 ### `delete-all-buffers`
 
@@ -80,7 +84,7 @@ The command `delete-all-buffers` will delete ALL buffers except for the
 currently active one.
 
 
-<a id="orgf2f2aa5"></a>
+<a id="orgf74d01a"></a>
 
 ### `open-home-dir`
 
@@ -89,7 +93,7 @@ to me, so when I need to open a local `html` file, I often just start by
 calling `open-home-dir`, and then link-hint my way to where I need to be.
 
 
-<a id="org1cc4ff2"></a>
+<a id="orgb813610"></a>
 
 ### Vim `ex` style command abbreviations
 
@@ -104,7 +108,7 @@ actually take args in `next`.
     dirty hack, so I should redo that at some point.
 
 
-<a id="orga7700c1"></a>
+<a id="org861db1a"></a>
 
 ### Use `C-[` like `ESCAPE`
 
@@ -112,7 +116,7 @@ This one isn't an *actual* alias for `ESCAPE`, but will do the same thing in
 `vi-normal-mode`, `vi-insert-mode`, and `minibuffer-mode`.
 
 
-<a id="orgb92e866"></a>
+<a id="org644cd97"></a>
 
 ### "Hot-swapping" and version controlling `bookmark-db` files     :bookmarks:
 
@@ -172,12 +176,12 @@ not already exist.
 6.  TODO Select-bookmark-db should glob for .db files
 
 
-<a id="org779777a"></a>
+<a id="orgc2e7a66"></a>
 
 ## `README.org` TODO-list
 
 
-<a id="org87f3c21"></a>
+<a id="org6305d51"></a>
 
 ### TODO Literate style init file?
 
