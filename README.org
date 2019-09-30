@@ -50,7 +50,8 @@
     (i.e. the "active" bookmark database file) on the fly, via a minibuffer
     prompt implementing ~file-manager-mode~. The selected file will be created if
     it doesn't already exist. If a =.git= directory is found in the directory
-    housing the selected file, the command ~git add <bookmark-db>~ is called.
+    housing the selected file, the command ~git add <bookmark-db>~ is called,
+    followed by steps (1) and (2) of ~bookmark-db-push~.
 
     The command ~bookmark-db-push~ will call the following commands in sequence:
     
@@ -77,6 +78,16 @@
     have occurred), and then upon command completion. Like ~select-bookmark-db~,
     the destination database will be created and added to the repo if it does
     not already exist.
+**** TODO Better system for git interaction
+     - I can't help but feel that the current system is a little excessive with
+     commit frequency.
+**** TODO Should we use command hooks for git interaction?
+     - It may be elegant to call the start/end repo updates in the entry/exit
+       command hooks (e.g. for ~bookmark-db-mv~ and ~bookmark-db-cp~). One
+       possible downside though, is that since the git interaction is not coded
+       explicitly in the function body, it may become more challenging to
+       understand what is going on if these things get more complicated (and I
+       tend to be stupid so...)
 **** TODO Allow user to specify remote and branch
 **** TODO Display git command output in minibuffer
 **** TODO Password prompts
