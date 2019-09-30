@@ -1,27 +1,27 @@
 
 # Table of Contents
 
-1.  [next-cfg](#org3818443):next_browser:
-    1.  [Author: Taylor Viti](#org8d465dd)
-    2.  [Note about versions](#org03e4b5e)
-    3.  [Features](#org5df9fb6)
-        1.  [Automatically determine the `dbus` socket's location on macOS](#org70e5cd0)
-        2.  [Make buffer deletion prompt more consistent w/ Emacs](#org4b8ff18)
-        3.  [`delete-all-buffers`](#org99c7059)
-        4.  [`open-home-dir`](#org9237d79)
-        5.  [Vim `ex` style command abbreviations](#orgf612f6e)
-        6.  [Use `C-[` like `ESCAPE`](#org47aa42e)
-        7.  ["Hot-swapping" and version controlling `bookmark-db` files](#org9492379):bookmarks:
-    4.  [`README.org` TODO-list](#org4eb6c35)
-        1.  [Literate style init file?](#orga56648c)
+1.  [next-cfg](#orgea61b82):next_browser:
+    1.  [Author: Taylor Viti](#org8669484)
+    2.  [Note about versions](#org6790cc3)
+    3.  [Features](#orgf7b888c)
+        1.  [Automatically determine the `dbus` socket's location on macOS](#org70ad313)
+        2.  [Make buffer deletion prompt more consistent w/ Emacs](#orgf6debe8)
+        3.  [`delete-all-buffers`](#org771a941)
+        4.  [`open-home-dir`](#org0a006b6)
+        5.  [Vim `ex` style command abbreviations](#orgeb3b645)
+        6.  [Use `C-[` like `ESCAPE`](#org98f4d92)
+        7.  ["Hot-swapping" and version controlling `bookmark-db` files](#org37002fe):bookmarks:
+    4.  [`README.org` TODO-list](#org3fc3ecb)
+        1.  [Literate style init file?](#orgcf00655)
 
 
-<a id="org3818443"></a>
+<a id="orgea61b82"></a>
 
 # next-cfg     :next_browser:
 
 
-<a id="org8d465dd"></a>
+<a id="org8669484"></a>
 
 ## Author: Taylor Viti
 
@@ -33,7 +33,7 @@ For more information on `next-browser`, see:
 -   <https://github.com/atlas-engineer/next/blob/master/documents/MANUAL.org>
 
 
-<a id="org03e4b5e"></a>
+<a id="org6790cc3"></a>
 
 ## Note about versions
 
@@ -44,12 +44,12 @@ the `next-browser` repo). From what I can tell, this is due to the switch to
 haven't spent a whole lot of time debugging so far.
 
 
-<a id="org5df9fb6"></a>
+<a id="orgf7b888c"></a>
 
 ## Features
 
 
-<a id="org70e5cd0"></a>
+<a id="org70ad313"></a>
 
 ### Automatically determine the `dbus` socket's location on macOS
 
@@ -59,7 +59,7 @@ be pointing to the wrong location, so I query the value of the latter and
 then use it to set the former when `next` starts
 
 
-<a id="org4b8ff18"></a>
+<a id="orgf6debe8"></a>
 
 ### Make buffer deletion prompt more consistent w/ Emacs
 
@@ -72,7 +72,7 @@ Emacs behavior (the command implementing this is un-creatively termed
 `my-delete-buffer`).
 
 
-<a id="org99c7059"></a>
+<a id="org771a941"></a>
 
 ### `delete-all-buffers`
 
@@ -80,7 +80,7 @@ The command `delete-all-buffers` will delete ALL buffers except for the
 currently active one.
 
 
-<a id="org9237d79"></a>
+<a id="org0a006b6"></a>
 
 ### `open-home-dir`
 
@@ -89,7 +89,7 @@ to me, so when I need to open a local `html` file, I often just start by
 calling `open-home-dir`, and then link-hint my way to where I need to be.
 
 
-<a id="orgf612f6e"></a>
+<a id="orgeb3b645"></a>
 
 ### Vim `ex` style command abbreviations
 
@@ -104,7 +104,7 @@ actually take args in `next`.
     dirty hack, so I should redo that at some point.
 
 
-<a id="org47aa42e"></a>
+<a id="org98f4d92"></a>
 
 ### Use `C-[` like `ESCAPE`
 
@@ -112,7 +112,7 @@ This one isn't an *actual* alias for `ESCAPE`, but will do the same thing in
 `vi-normal-mode`, `vi-insert-mode`, and `minibuffer-mode`.
 
 
-<a id="org9492379"></a>
+<a id="org37002fe"></a>
 
 ### "Hot-swapping" and version controlling `bookmark-db` files     :bookmarks:
 
@@ -120,7 +120,8 @@ The command `select-bookmark-db` allows you to change `bookmark-db-path`
 (i.e. the "active" bookmark database file) on the fly, via a minibuffer
 prompt implementing `file-manager-mode`. The selected file will be created if
 it doesn't already exist. If a `.git` directory is found in the directory
-housing the selected file, the command `git add <bookmark-db>` is called.
+housing the selected file, the command `git add <bookmark-db>` is called,
+followed by steps (1) and (2) of `bookmark-db-push`.
 
 The command `bookmark-db-push` will call the following commands in sequence:
 
@@ -148,21 +149,36 @@ have occurred), and then upon command completion. Like `select-bookmark-db`,
 the destination database will be created and added to the repo if it does
 not already exist.
 
-1.  TODO Allow user to specify remote and branch
+1.  TODO Better system for git interaction
 
-2.  TODO Display git command output in minibuffer
+    -   I can't help but feel that the current system is a little excessive with
+    
+    commit frequency.
 
-3.  TODO Password prompts
+2.  TODO Should we use command hooks for git interaction?
 
-4.  TODO Select-bookmark-db should glob for .db files
+    -   It may be elegant to call the start/end repo updates in the entry/exit
+        command hooks (e.g. for `bookmark-db-mv` and `bookmark-db-cp`). One
+        possible downside though, is that since the git interaction is not coded
+        explicitly in the function body, it may become more challenging to
+        understand what is going on if these things get more complicated (and I
+        tend to be stupid so&#x2026;)
+
+3.  TODO Allow user to specify remote and branch
+
+4.  TODO Display git command output in minibuffer
+
+5.  TODO Password prompts
+
+6.  TODO Select-bookmark-db should glob for .db files
 
 
-<a id="org4eb6c35"></a>
+<a id="org3fc3ecb"></a>
 
 ## `README.org` TODO-list
 
 
-<a id="orga56648c"></a>
+<a id="orgcf00655"></a>
 
 ### TODO Literate style init file?
 
