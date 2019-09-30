@@ -134,6 +134,18 @@ e.g. from org-mode or an Rmarkdown doc)."
 		      :error-output :output
 		      :ignore-error-status t)))
 
+(defun bookmark-db-commit (msg)
+  "If the active bookmark db is housed in a repo, then stage updates and commit
+  the repos current state, with msg as the commit message. Return nil if there
+  is no repo."
+  (if (is-git-repo (bookmark-db-dir))
+      (progn
+	(print (bookmark-db-git-cmd '("add" "--update")))
+	(print (bookmark-db-git-cmd '("commit" "-m" "bookmark-db-cp start"))))
+      (progn
+	(print (format nil "No repo at ~a !!!" (bookmark-db-dir)))
+	'nil)))
+
 (defun set-bookmark-db (path)
   "Set the current active bookmark-db (i.e. (bookmark-db *interface*) to
 path. If path lives in a git repo, call `git add path`."
