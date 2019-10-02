@@ -40,9 +40,9 @@
 ;; 		     :output :interactive)
 ;; (sleep 2)  ;; Take a breather (otherwise core can't connect for some reason)
 
-(defun my-buffer-completion-fn ()
+(defun my-buffer-completion-filter ()
   (let ((buffers (alexandria:hash-table-values (buffers *interface*)))
-        (active-buffer (active-buffer *interface*)))
+        (active-buffer (current-buffer)))
     ;; Make the active buffer the first buffer in the list
     (when (not (equal (first buffers) active-buffer))
       (push active-buffer buffers))
@@ -52,11 +52,12 @@
   "Delete the buffer via minibuffer input. This is basically identical to the
 original implementation, but uses a slightly modified completion function that
 makes the active buffer the default deletion (i.e. how it is in Emacs)."
-  (with-result (buffer (read-from-minibuffer
-                        (make-instance 'minibuffer
-                                       :input-prompt "Kill buffer:"
-                                       :completion-function (my-buffer-completion-fn))))
-    (rpc-buffer-delete *interface* buffer)))
+  (with-result (buffers (read-from-minibuffer
+			 (make-instance 'minibuffer
+					:input-prompt "Kill buffer:"
+					:multi-selection-p t
+					:completion-function (my-buffer-completion-filter))))
+    (mapcar #'rpc-buffer-delete buffers)))
 
 ;; (define-command delete-all-buffers ()
 ;;   "Delete ALL buffers, EXCEPT for the active buffer. I'd prefer to just delete
@@ -88,7 +89,7 @@ makes the active buffer the default deletion (i.e. how it is in Emacs)."
 
 (defvar *my-keymap* (make-keymap))
 (define-key :keymap *my-keymap*
-  "C-x k" #'delete-buffer)
+  "C-x k" #'my-delete-buffer)
 
 (define-mode my-mode ()
   "Dummy mode for the custom key bindings in `*my-keymap*'."
