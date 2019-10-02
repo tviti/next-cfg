@@ -299,7 +299,7 @@ with-result."
 		    :default-modes '(next/file-manager-mode::file-manager-mode minibuffer-mode)
 		    :input-prompt (format nil "~a~a" prompt-base (file-namestring directory))
 		    :empty-complete-immediate t
-		    :completion-function #'next/file-manager-mode::open-file-from-directory-completion-fn))))
+		    :completion-function #'next/file-manager-mode::open-file-from-directory-completion-filter))))
 
 (define-command select-bookmark-db ()
   "Prompt the user to choose which bookmark database file they would like to
