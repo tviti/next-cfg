@@ -14,3 +14,14 @@ Archived entries from file /Users/taylor/.config/next/README.org
   :ARCHIVE_ITAGS: next_browser bookmarks
   :END:
 
+
+* DONE Better implementation of ~def-cmd-alias~
+  :PROPERTIES:
+  :ARCHIVE_TIME: 2019-10-02 Wed 12:35
+  :ARCHIVE_FILE: ~/.config/next/README.org
+  :ARCHIVE_OLPATH: Features/Vim =ex= style command abbreviations
+  :ARCHIVE_CATEGORY: README
+  :ARCHIVE_TODO: DONE
+  :END:
+  I'm guessing that my method of implementing the aliases is probably a
+  dirty hack, so I should redo that at some point.
