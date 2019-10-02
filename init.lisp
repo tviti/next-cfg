@@ -59,20 +59,23 @@ makes the active buffer the default deletion (i.e. how it is in Emacs)."
 					:completion-function (my-buffer-completion-filter))))
     (mapcar #'rpc-buffer-delete buffers)))
 
-;; (define-command delete-all-buffers ()
-;;   "Delete ALL buffers, EXCEPT for the active buffer. I'd prefer to just delete
-;; ALL of them (even the active buffer), but Next doesn't seem to like it when the
-;; sole active buffer gets deleted."
-;;   (with-result (y-n (read-from-minibuffer
-;; 		     (make-instance 'minibuffer
-;; 				    :input-prompt "Are you sure you want to kill all buffers (y or n)?")))
-;;     (if (string-equal y-n "y")
-;; 	(let* ((active-buffer (active-buffer *interface*))
-;; 	       (b-list (alexandria:hash-table-values (buffers *interface*)))
-;; 	       (b-list-bg (remove active-buffer b-list)))
-;; 	  (mapcar (lambda (b) (rpc-buffer-delete *interface* b)) b-list-bg)))))
+(define-command delete-all-buffers ()
+  "Delete ALL buffers, EXCEPT for the active buffer. I'd prefer to just delete
+ALL of them (even the active buffer), but Next doesn't seem to like it when the
+sole active buffer gets deleted."
+  (with-result (y-n (read-from-minibuffer
+		     (make-instance 'minibuffer
+				    :input-prompt "Are you sure you want to kill all buffers (y or n)?")))
+    (when (string-equal y-n "y")
+      (let* ((active-buffer (current-buffer))
+	     (buffers (alexandria:hash-table-values
+		       (buffers *interface*)))
+	     (bg-buffers (remove active-buffer buffers)))
+	(mapcar #'rpc-buffer-delete bg-buffers)))))
 
+;;
 ;; Hacked together keyboard macros (a hackro?)
+;;
 (defun spoof-escape-key ()
   "Spoof an ESCAPE keypress. Kind of a dirty hack. The call to
 %%push-input-event is copy-pasta from a slime stacktrace after hitting ESCAPE."
