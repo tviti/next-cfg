@@ -333,7 +333,7 @@ of the selected entry."
   (read-from-minibuffer
    (make-instance 'minibuffer
 		  :input-prompt "Select bookmark:"
-		  :completion-function 'bookmark-complete
+		  :completion-function (bookmark-completion-filter)
 		  :callback callback)))
 
 (define-command bookmark-db-cp ()
@@ -345,7 +345,9 @@ of the selected entry."
     (with-result* ((entry (query-bookmark-db-entry))
 		   (dest-db-path (query-file-path (bookmark-db-dir))))
       (set-bookmark-db dest-db-path)
-      (%bookmark-url entry)
+      (bookmark-add (url entry)
+		    :title (title entry)
+		    :tags (tags entry))
       (set-bookmark-db origin-db-path)
       (bookmark-db-commit "bookmark-db-cp end"))))
 
@@ -353,20 +355,18 @@ of the selected entry."
   "Move a bookmark from the active db to another. The repo state will be
   committed before and after the copy operation. Upon completion, the starting
   db remains the active one."
+  ;; TODO: Severe copy-pasta with bookmark-db-cp
   (let ((origin-db-path (bookmark-db-path *interface*)))
     (bookmark-db-commit "bookmark-db-mv start")
     (with-result* ((entry (query-bookmark-db-entry))
 		   (dest-db-path (query-file-path (bookmark-db-dir))))
-      (set-bookmark-db dest-db-path)
-      (%bookmark-url entry)
-      (set-bookmark-db origin-db-path)
       ;; This is ripped from the body of (bookmark-delete)
-      (let ((db (sqlite:connect
-                 (ensure-file-exists (bookmark-db-path *interface*)
-                                     #'%initialize-bookmark-db))))
-        ;; TODO: We should execute only one DB query.
-        (sqlite:execute-non-query
-         db "delete from bookmarks where url = ?" entry)
-        (sqlite:disconnect db))
+      (setf (bookmarks-data *interface*)
+	    (set-difference (bookmarks-data *interface*) (list entry) :test #'equals))
+      (set-bookmark-db dest-db-path)
+      (bookmark-add (url entry)
+		    :title (title entry)
+		    :tags (tags entry))
+      (set-bookmark-db origin-db-path)
       (bookmark-db-commit "bookmark-db-mv end"))))
 
