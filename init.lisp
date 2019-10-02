@@ -126,7 +126,7 @@ sole active buffer gets deleted."
 e.g. from org-mode or an Rmarkdown doc)."
   (let ((url (concatenate 'string "file://"
 			  (directory-namestring (truename "~/")))))
-    (set-url url :buffer (active-buffer *interface*))))
+    (set-url url)))
 
 ;;
 ;; Commands for bookmark-db management. These commands all assume that the
