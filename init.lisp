@@ -129,12 +129,16 @@ completion of ex-command args)."
 
 ;; (defmethod ex-completion-handler ((completions 
 
+(defun is-ex-command (str)
+  "Return non-nil if the string represents an ex command call."
+  (and (>= (length input) 2)
+       (eq (char input 1) #\NO-BREAK_SPACE)))
+
 (defun ex-command-completion-filter (input)
   "Custom completion function that facilitates argument-passing to ex-commands."
   ;; TODO: If the length of the ex-command string isn't hardcoded, then we might
   ;; be able to re-use this for passing args to general cmds.
-  (if (and (>= (length input) 2)
-	   (eq (char input 1) #\NO-BREAK_SPACE))
+  (if (is-ex-command input)
       (let ((cmd-str (format nil "~a" (char input 0)))
 	    (cmd-arg-str (subseq input 2)))
 	(activate-ex-minibuffer-mode)
