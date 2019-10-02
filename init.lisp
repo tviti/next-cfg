@@ -9,9 +9,6 @@
 	("define" . "https://en.wiktionary.org/w/index.php?search=~a")
 	("python3" . "https://docs.python.org/3/search.html?q=~a")))
 
-;; Enable blocker mode in new browsers
-(add-to-default-list 'blocker-mode 'buffer 'default-modes)
-
 ;; Unfortunately, if we launch from an application package (e.g. by double
 ;; clicking Next.app) macOS doesn't seem to properly set the dbus session bus
 ;; address (that, or I just don't understand HOW it is setting it), so we will
@@ -61,43 +58,64 @@ makes the active buffer the default deletion (i.e. how it is in Emacs)."
                                        :completion-function (my-buffer-completion-fn))))
     (rpc-buffer-delete *interface* buffer)))
 
-(define-command delete-all-buffers ()
-  "Delete ALL buffers, EXCEPT for the active buffer. I'd prefer to just delete
-ALL of them (even the active buffer), but Next doesn't seem to like it when the
-sole active buffer gets deleted."
-  (with-result (y-n (read-from-minibuffer
-		     (make-instance 'minibuffer
-				    :input-prompt "Are you sure you want to kill all buffers (y or n)?")))
-    (if (string-equal y-n "y")
-	(let* ((active-buffer (active-buffer *interface*))
-	       (b-list (alexandria:hash-table-values (buffers *interface*)))
-	       (b-list-bg (remove active-buffer b-list)))
-	  (mapcar (lambda (b) (rpc-buffer-delete *interface* b)) b-list-bg)))))
+;; (define-command delete-all-buffers ()
+;;   "Delete ALL buffers, EXCEPT for the active buffer. I'd prefer to just delete
+;; ALL of them (even the active buffer), but Next doesn't seem to like it when the
+;; sole active buffer gets deleted."
+;;   (with-result (y-n (read-from-minibuffer
+;; 		     (make-instance 'minibuffer
+;; 				    :input-prompt "Are you sure you want to kill all buffers (y or n)?")))
+;;     (if (string-equal y-n "y")
+;; 	(let* ((active-buffer (active-buffer *interface*))
+;; 	       (b-list (alexandria:hash-table-values (buffers *interface*)))
+;; 	       (b-list-bg (remove active-buffer b-list)))
+;; 	  (mapcar (lambda (b) (rpc-buffer-delete *interface* b)) b-list-bg)))))
 
-;; Make vi-normal the default keybinding scheme
-(add-to-default-list 'vi-normal-mode 'buffer 'default-modes)
+;; Hacked together keyboard macros (a hackro?)
+(defun spoof-escape-key ()
+  "Spoof an ESCAPE keypress. Kind of a dirty hack. The call to
+%%push-input-event is copy-pasta from a slime stacktrace after hitting ESCAPE."
+  ;; Reset the keystack so we can _really_ spoof a keypres.
+  ;; TODO: Possibly problematic if there are multiple `remote-interface' objs.
+  (setf (key-chord-stack *interface*) nil)
+  (%%push-input-event 16777216 "ESCAPE" '("") -1.0d0 -2.0d0 16777216 "1"))
 
-;; Edit keybindings a bit to make them more consistent with Emacs + evil-mode
-(define-key :scheme :vi-normal
-  "C-x k" #'my-delete-buffer)
+(defun set-override-map (buffer)
+  "For some reason, hackro's don't work unless they are set in the buffer's
+  override map (is `root-mode' taking precedence?)"
+  (define-key :keymap (override-map buffer)
+    "C-[" #'spoof-escape-key))
 
-(define-key :scheme :vi-insert
-  "C-[" #'next/vi-mode:vi-normal-mode
-  "C-x k" #'my-delete-buffer)
+(defvar *my-keymap* (make-keymap))
+(define-key :keymap *my-keymap*
+  "C-x k" #'delete-buffer)
 
-(define-key :mode 'minibuffer-mode
-  "C-[" #'cancel-input)
+(define-mode my-mode ()
+  "Dummy mode for the custom key bindings in `*my-keymap*'."
+  ((keymap-schemes :initform (list :emacs-map *my-keymap*
+                                   :vi-normal *my-keymap*))))
 
-;; Create ex abbreviations for cmds. I'm aware that my def-cmd-alias macro is a
-;; dirty hack, and would appreciate advice for a better way to do this.
-(defmacro def-cmd-alias (alias original)
-  "This doesn't seem like the right way to do this"
-  `(progn
-     (define-command ,alias () (,original))
-     (setf (fdefinition ',alias) #',original)))
-;; Create the abreviations
-(def-cmd-alias b switch-buffer)
-(def-cmd-alias e set-url-new-buffer)
+(defun my-buffer-defaults (buffer)
+  (set-override-map buffer)
+  (dolist (mode '(my-mode vi-normal-mode blocker-mode))
+    (pushnew mode (default-modes buffer))))
+
+(defun my-interface-defaults ()
+  (hooks:add-to-hook (hooks:object-hook *interface* 'buffer-make-hook)
+                     #'my-buffer-defaults))
+
+(hooks:add-to-hook '*after-init-hook* #'my-interface-defaults)
+
+;; ;; Create ex abbreviations for cmds. I'm aware that my def-cmd-alias macro is a
+;; ;; dirty hack, and would appreciate advice for a better way to do this.
+;; (defmacro def-cmd-alias (alias original)
+;;   "This doesn't seem like the right way to do this"
+;;   `(progn
+;;      (define-command ,alias () (,original))
+;;      (setf (fdefinition ',alias) #',original)))
+;; ;; Create the abreviations
+;; (def-cmd-alias b switch-buffer)
+;; (def-cmd-alias e set-url-new-buffer)
 
 (define-command open-home-dir ()
   "Open my home directory in a browser window (useful for viewing html exports
