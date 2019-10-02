@@ -104,29 +104,36 @@ sole active buffer gets deleted."
 
 (defun ex-command-completion-filter (input)
   "Custom completion function to make sure ex abbrevs. take precedence"
-  (if (eq (length input) 1)
-      (fuzzy-match input ex-command-list)
+  (if (and (>= (length input) 2)
+	   (eq (char input 1) #\NO-BREAK_SPACE))
+      (let ((cmd-str (format nil "~a" (char input 0)))
+	    (cmd-arg-str (subseq input 2) ))
+	(cond ((string-equal cmd-str "e")
+	       (format nil "e ~a" (funcall (history-completion-filter) cmd-arg-str)))
+	      ((string-equal cmd-str "b")
+	       (format nil "b ~a" (funcall (buffer-completion-filter) cmd-arg-str))))
+	      (t (command-completion-filter input)))
       (command-completion-filter input)))
 
 (define-command execute-command-or-ex ()
   "Execute a command by name."
-  (with-result (command (read-from-minibuffer
+  (with-result (result (read-from-minibuffer
                          (make-instance 'minibuffer
-                                        :input-prompt ": "
+                                        :input-prompt ":"
                                         :completion-function 'ex-command-completion-filter)))
-    (setf (access-time command) (get-internal-real-time))
-    (run command)))
+    (if (typep result 'string)
+	(let* ((cmd-str (format nil "~a" (char result 0)))
+	       (command (fuzzy-match cmd-str ex-command-list))
+	       (arg (subseq result 2)))
+	  (setf (access-time command) (get-internal-real-time))
+	  (run command arg))
+	(progn
+	  (setf (access-time result) (get-internal-real-time))
+	  (run result)))))
 
 ;;
 ;; Drop all of my customizations into a mode.
 ;;
-(defun set-override-map (buffer)
-  "For some reason, hackro's don't work unless they are set in the buffer's
-  override map (is `root-mode' taking precedence?)"
-  (define-key :keymap (override-map buffer)
-    ":" #'execute-command-or-ex
-    "C-[" #'spoof-escape-key))
-
 (defvar *my-keymap* (make-keymap))
 (define-key :keymap *my-keymap*
   "C-x k" #'my-delete-buffer)
@@ -139,6 +146,13 @@ sole active buffer gets deleted."
 ;;
 ;; Define customization handlers
 ;;
+(defun set-override-map (buffer)
+  "For some reason, certain bindings don't work unless they are set in the
+  buffer's override map (is `root-mode' taking precedence?)"
+  (define-key :keymap (override-map buffer)
+    ":" #'execute-command-or-ex
+    "C-[" #'spoof-escape-key))
+
 (defun my-buffer-defaults (buffer)
   (set-override-map buffer)
   (dolist (mode '(my-mode vi-normal-mode blocker-mode))
