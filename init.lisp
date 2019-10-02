@@ -293,13 +293,13 @@ with-result."
   ;; TODO: Can this be done w/out mucking w/ a global var?
   (setf next/file-manager-mode::*current-directory* start-dir)
   (let ((directory next/file-manager-mode::*current-directory*))
-    (pathname (read-from-minibuffer
+    (read-from-minibuffer
      (make-instance 'minibuffer
 		    :callback callback
 		    :default-modes '(next/file-manager-mode::file-manager-mode minibuffer-mode)
 		    :input-prompt (format nil "~a~a" prompt-base (file-namestring directory))
 		    :empty-complete-immediate t
-		    :completion-function #'next/file-manager-mode::open-file-from-directory-completion-filter)))))
+		    :completion-function #'next/file-manager-mode::open-file-from-directory-completion-filter))))
 
 (define-command select-bookmark-db ()
   "Prompt the user to choose which bookmark database file they would like to
