@@ -1,29 +1,22 @@
 
 # Table of Contents
 
-1.  [next-cfg](#orgb2063c1):next_browser:
-    1.  [Author: Taylor Viti](#orgcfde60b)
-    2.  [Note about versions](#orge982d3f)
-    3.  [Features](#orgb79be06)
-        1.  [Automatically determine the `dbus` socket's location on macOS](#orgdd51e84)
-        2.  [Make buffer deletion prompt more consistent w/ Emacs](#org7789160)
-        3.  [`delete-all-buffers`](#orgd239ac1)
-        4.  [`open-home-dir`](#orgf74d01a)
-        5.  [Vim `ex` style command abbreviations](#orgb813610)
-        6.  [Use `C-[` like `ESCAPE`](#org861db1a)
-        7.  ["Hot-swapping" and version controlling `bookmark-db` files](#org644cd97):bookmarks:
-    4.  [`README.org` TODO-list](#orgc2e7a66)
-        1.  [Literate style init file?](#org6305d51)
-
-
-<a id="orgb2063c1"></a>
-
-# next-cfg     :next_browser:
-
-
-<a id="orgcfde60b"></a>
-
-## Author: Taylor Viti
+1.  [Features](#org4affe90)
+    1.  [Automatically determine the `dbus` socket's location on macOS](#org6f0e716)
+    2.  [Make buffer deletion prompt more consistent w/ Emacs](#org7c39b86)
+    3.  [`delete-all-buffers`](#orgbaba2d7)
+    4.  [`open-home-dir`](#org10fc25d)
+    5.  [Vim `ex` style command abbreviations](#org5f75bbb)
+    6.  [Use `C-[` like `ESCAPE`](#org6537bdc)
+    7.  ["Hot-swapping" and version controlling `bookmark-db` files](#org158a85e):bookmarks:
+        1.  [Better system for git interaction](#orgc63a957)
+        2.  [Should we use command hooks for git interaction?](#org66a2cfd)
+        3.  [Allow user to specify remote and branch](#org2e2c093)
+        4.  [Display git command output in minibuffer](#orgba22604)
+        5.  [Password prompts](#org8a49ec0)
+        6.  [Select-bookmark-db should glob for database files](#org14c2b66)
+2.  [`README.org` TODO-list](#orgfa4af27)
+    1.  [Literate style init file?](#orgdff673b)
 
 A repo for version controlling my `next-browser` init/config file(s).
 
@@ -33,29 +26,14 @@ For more information on `next-browser`, see:
 -   <https://github.com/atlas-engineer/next/blob/master/documents/MANUAL.org>
 
 
-<a id="orge982d3f"></a>
+<a id="org4affe90"></a>
 
-## Note about versions
-
-This config works up til `next-browser` v1.3.2 [commit df99518](https://github.com/atlas-engineer/next/commit/df99518f03d1bb01c0a95b9cfa385af26cc39a2e), but seems to
-be broken when run with the latest **dev version** (i.e. the master branch of
-the `next-browser` repo). It may work with further commits, but is only
-tested up to that particular one (the latest as of this writing, [commit
-628680f](https://github.com/atlas-engineer/next/commit/628680f9b396513a3874bf00084042f5a07bee4f), is unusable).
-
-From what I can tell, this is due to the switch to
-*functional* style configurations (see [this issue ticket](https://github.com/atlas-engineer/next/issues/419)), but I honestly
-haven't spent a whole lot of time debugging so far.
+# Features
 
 
-<a id="orgb79be06"></a>
+<a id="org6f0e716"></a>
 
-## Features
-
-
-<a id="orgdd51e84"></a>
-
-### Automatically determine the `dbus` socket's location on macOS
+## Automatically determine the `dbus` socket's location on macOS
 
 macOS doesn't define the env var `DBUS_SESSION_BUS_ADDRESS` on it's own, and
 I have also noticed that often times `DBUS_LAUNCHD_SESSION_BUS_SOCKET` will
@@ -63,9 +41,9 @@ be pointing to the wrong location, so I query the value of the latter and
 then use it to set the former when `next` starts
 
 
-<a id="org7789160"></a>
+<a id="org7c39b86"></a>
 
-### Make buffer deletion prompt more consistent w/ Emacs
+## Make buffer deletion prompt more consistent w/ Emacs
 
 The default behavior of `C-x k` in Emacs (at least with `evil-mode` active)
 is to query the user for a buffer to delete, with the default being the
@@ -76,49 +54,54 @@ Emacs behavior (the command implementing this is un-creatively termed
 `my-delete-buffer`).
 
 
-<a id="orgd239ac1"></a>
+<a id="orgbaba2d7"></a>
 
-### `delete-all-buffers`
+## `delete-all-buffers`
 
 The command `delete-all-buffers` will delete ALL buffers except for the
 currently active one.
 
 
-<a id="orgf74d01a"></a>
+<a id="org10fc25d"></a>
 
-### `open-home-dir`
+## `open-home-dir`
 
 The current file manager implementation felt a little un-intuitive and clunky
 to me, so when I need to open a local `html` file, I often just start by
 calling `open-home-dir`, and then link-hint my way to where I need to be.
 
 
-<a id="orgb813610"></a>
+<a id="org5f75bbb"></a>
 
-### Vim `ex` style command abbreviations
+## Vim `ex` style command abbreviations
 
 In Emacs, I rely heavily on the `b` and `e` `ex` commands for swapping
 buffers and opening files. Here, they are aliases for `switch-buffer` and
-`set-url-new-buffer`. Of course, unlike in Vim and Emacs, they don't
-actually take args in `next`.
+`set-url-new-buffer`. The `ex-style` aliases live in their own command list
+though, and are thus not callable from `execute-command` prompt (i.e. they
+are invisible to the `M-x` prompt). To access them, call
+`execute-command-or-ex` (accessible via `:`, like in Vi or `evi-mode`).
 
-1.  TODO Better implementation of `def-cmd-alias`
-
-    I'm guessing that my method of implementing the aliases is probably a
-    dirty hack, so I should redo that at some point.
-
-
-<a id="org861db1a"></a>
-
-### Use `C-[` like `ESCAPE`
-
-This one isn't an *actual* alias for `ESCAPE`, but will do the same thing in
-`vi-normal-mode`, `vi-insert-mode`, and `minibuffer-mode`.
+The `execute-command-or-ex` prompt should allow you to access all the
+*non*-ex-style commands as well (just like `execute-command`). It also
+implements a very primitive/hackish/experimental attempt at passing
+tab-completable arguments to the ex-style commands. For example, after
+entering `b SPACE`, the prompt should bring up the same completion list as
+`switch-buffer`.
 
 
-<a id="org644cd97"></a>
+<a id="org6537bdc"></a>
 
-### "Hot-swapping" and version controlling `bookmark-db` files     :bookmarks:
+## Use `C-[` like `ESCAPE`
+
+The chord `C-[` is set to spoof an `ESCAPE` keypress to the browser core, so
+you can use it for all the same things (e.g. going back to `vi-normal` mode,
+or closing the minibuffer prompt).
+
+
+<a id="org158a85e"></a>
+
+## "Hot-swapping" and version controlling `bookmark-db` files     :bookmarks:
 
 The command `select-bookmark-db` allows you to change `bookmark-db-path`
 (i.e. the "active" bookmark database file) on the fly, via a minibuffer
@@ -153,37 +136,55 @@ have occurred), and then upon command completion. Like `select-bookmark-db`,
 the destination database will be created and added to the repo if it does
 not already exist.
 
-1.  TODO Better system for git interaction
 
-    -   I can't help but feel that the current system is a little excessive with
-        commit frequency.
+<a id="orgc63a957"></a>
 
-2.  TODO Should we use command hooks for git interaction?
+### TODO Better system for git interaction
 
-    -   It may be elegant to call the start/end repo updates in the entry/exit
-        command hooks (e.g. for `bookmark-db-mv` and `bookmark-db-cp`). One
-        possible downside though, is that since the git interaction is not coded
-        explicitly in the function body, it may become more challenging to
-        understand what is going on if these things get more complicated (and I
-        tend to be stupid so&#x2026;)
-
-3.  TODO Allow user to specify remote and branch
-
-4.  TODO Display git command output in minibuffer
-
-5.  TODO Password prompts
-
-6.  TODO Select-bookmark-db should glob for .db files
+-   I can't help but feel that the current system is a little excessive with
+    commit frequency.
 
 
-<a id="orgc2e7a66"></a>
+<a id="org66a2cfd"></a>
 
-## `README.org` TODO-list
+### TODO Should we use command hooks for git interaction?
+
+-   It may be elegant to call the start/end repo updates in the entry/exit
+    command hooks (e.g. for `bookmark-db-mv` and `bookmark-db-cp`). One
+    possible downside though, is that since the git interaction is not coded
+    explicitly in the function body, it may become more challenging to
+    understand what is going on if these things get more complicated (and I
+    tend to be stupid so&#x2026;)
 
 
-<a id="org6305d51"></a>
+<a id="org2e2c093"></a>
 
-### TODO Literate style init file?
+### TODO Allow user to specify remote and branch
+
+
+<a id="orgba22604"></a>
+
+### TODO Display git command output in minibuffer
+
+
+<a id="org8a49ec0"></a>
+
+### TODO Password prompts
+
+
+<a id="org14c2b66"></a>
+
+### TODO Select-bookmark-db should glob for database files
+
+
+<a id="orgfa4af27"></a>
+
+# `README.org` TODO-list
+
+
+<a id="orgdff673b"></a>
+
+## TODO Literate style init file?
 
 Vindarel's *literate style* init file using `erudite` is really damned
 slick. Should we do the same thing?
