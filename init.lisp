@@ -107,13 +107,36 @@ sole active buffer gets deleted."
   (if (and (>= (length input) 2)
 	   (eq (char input 1) #\NO-BREAK_SPACE))
       (let ((cmd-str (format nil "~a" (char input 0)))
-	    (cmd-arg-str (subseq input 2) ))
+	    (cmd-arg-str (subseq input 2) )
+	    (minibuff (current-minibuffer)))
 	(cond ((string-equal cmd-str "e")
-	       (format nil "e ~a" (funcall (history-completion-filter) cmd-arg-str)))
+	       (progn
+		 (let ((completions (funcall (history-completion-filter) cmd-arg-str)))
+		   (when (not (str:emptyp (input-buffer minibuff)))
+		     (push cmd-arg-str completions))
+		   completions)))
 	      ((string-equal cmd-str "b")
-	       (format nil "b ~a" (funcall (buffer-completion-filter) cmd-arg-str))))
-	      (t (command-completion-filter input)))
-      (command-completion-filter input)))
+	       (progn
+		 (funcall (buffer-completion-filter) cmd-arg-str)))
+	      (t (command-completion-filter input))))))
+
+;; Dispatch based on ex-command's result
+(defmethod ex-handler ((buffer buffer))
+  (set-current-buffer buffer))
+
+(defmethod ex-handler ((url history-entry))
+  (ex-handler (url url)))
+
+(defmethod ex-handler ((url string))
+  (break)
+  (let ((buffer (make-buffer)))
+    (set-url url :buffer buffer)
+    (set-current-buffer buffer))
+  (set-url url))
+
+(defmethod ex-handler ((command command))
+  (setf (access-time command) (get-internal-real-time))
+  (run command))
 
 (define-command execute-command-or-ex ()
   "Execute a command by name."
@@ -121,15 +144,7 @@ sole active buffer gets deleted."
                          (make-instance 'minibuffer
                                         :input-prompt ":"
                                         :completion-function 'ex-command-completion-filter)))
-    (if (typep result 'string)
-	(let* ((cmd-str (format nil "~a" (char result 0)))
-	       (command (fuzzy-match cmd-str ex-command-list))
-	       (arg (subseq result 2)))
-	  (setf (access-time command) (get-internal-real-time))
-	  (run command arg))
-	(progn
-	  (setf (access-time result) (get-internal-real-time))
-	  (run result)))))
+    (ex-handler result)))
 
 ;;
 ;; Drop all of my customizations into a mode.
