@@ -118,21 +118,29 @@ completion of ex-command args)."
   ((keymap-schemes
     :initform
     (let ((map (make-keymap)))
-      (define-key "TAB" #'ex-insert-candidate
-	:keymap map)))))
+      (define-key :keymap map
+	"TAB" #'ex-insert-candidate)
+      (list :emacs map
+            ;; TODO: We could have VI bindings for the minibuffer too.
+            ;; But we need to make sure it's optional + to have an indicator
+            ;; for the mode.  This requires either a change of cursor or a
+            ;; echo area separate from the minibuffer.
+            :vi-normal map
+            :vi-insert map)))))
 
 (defun activate-ex-minibuffer-mode (&key (activate t)
 				      (minibuffer (current-minibuffer)))
   "Turn on the ex-command minibuffer mode."
-  (funcall (sym (mode-command 'ex-minibuffer-mode))
-	   :buffer minibuffer :activate activate))
+  (when minibuffer
+    (funcall (sym (mode-command 'ex-minibuffer-mode))
+	     :buffer minibuffer :activate activate)))
 
 ;; (defmethod ex-completion-handler ((completions 
 
 (defun is-ex-command (str)
   "Return non-nil if the string represents an ex command call."
-  (and (>= (length input) 2)
-       (eq (char input 1) #\NO-BREAK_SPACE)))
+  (and (>= (length str) 2)
+       (eq (char str 1) #\NO-BREAK_SPACE)))
 
 (defun ex-command-completion-filter (input)
   "Custom completion function that facilitates argument-passing to ex-commands."
@@ -178,11 +186,11 @@ completion of ex-command args)."
 (define-command execute-command-or-ex ()
   "Execute a command by name. If however the start of the input-buffer is a one
 character long ex-command followed by a space, then the rest of the input-buffer
-string is treated as an argument (as though the user had pressed `RETURN' after
-entering the ex-command's alias)."
+string is treated as an argument line w/ completions (as though the user had
+pressed `RETURN' after entering the ex-command's alias)."
   (with-result (result (read-from-minibuffer
 			(make-instance 'minibuffer
-				       :default-modes '(ex-minibuffer-mode minibuffer-mode)
+				       :default-modes '(minibuffer-mode)
 				       :input-prompt ":"
 				       :completion-function 'ex-command-completion-filter)))
     (ex-handler result)))
@@ -192,6 +200,7 @@ entering the ex-command's alias)."
 ;;
 (defvar *my-keymap* (make-keymap))
 (define-key :keymap *my-keymap*
+  ":" #'execute-command-or-ex
   "C-x k" #'my-delete-buffer)
 
 (define-mode my-mode ()
@@ -206,13 +215,13 @@ entering the ex-command's alias)."
   "For some reason, certain bindings don't work unless they are set in the
   buffer's override map (is `root-mode' taking precedence?)"
   (define-key :keymap (override-map buffer)
-    ":" #'execute-command-or-ex
     "C-[" #'spoof-escape-key))
 
 (defun my-buffer-defaults (buffer)
   (set-override-map buffer)
-  (dolist (mode '(my-mode vi-normal-mode blocker-mode))
-    (pushnew mode (default-modes buffer))))
+  (let ((my-mode-list '(my-mode vi-normal-mode blocker-mode)))
+    (setf (default-modes buffer)
+	  (concatenate 'list my-mode-list (default-modes buffer)))))
 
 (defun my-interface-defaults ()
   (hooks:add-to-hook (hooks:object-hook *interface* 'buffer-make-hook)
