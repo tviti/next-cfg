@@ -79,15 +79,52 @@ sole active buffer gets deleted."
 (defun spoof-escape-key ()
   "Spoof an ESCAPE keypress. Kind of a dirty hack. The call to
 %%push-input-event is copy-pasta from a slime stacktrace after hitting ESCAPE."
-  ;; Reset the keystack so we can _really_ spoof a keypres.
+  ;; Reset the keystack so we can _really_ spoof a keypress.
   ;; TODO: Possibly problematic if there are multiple `remote-interface' objs.
   (setf (key-chord-stack *interface*) nil)
   (%%push-input-event 16777216 "ESCAPE" '("") -1.0d0 -2.0d0 16777216 "1"))
 
+;;
+;; Vim ex style command abbreviations
+;;
+(defparameter ex-command-list '()
+  "The list of ex style command abbreviations")
+
+(defmacro def-cmd-alias (alias original)
+  "Create ex style abbreviations for cmds."
+  `(progn
+     (setf (fdefinition ',alias) ,original)
+     (pushnew (make-instance 'command
+			     :sym ',alias
+			     :pkg *package*)
+	      ex-command-list)))
+
+(def-cmd-alias b #'switch-buffer)
+(def-cmd-alias e #'set-url-new-buffer)
+
+(defun ex-command-completion-filter (input)
+  "Custom completion function to make sure ex abbrevs. take precedence"
+  (if (eq (length input) 1)
+      (fuzzy-match input ex-command-list)
+      (command-completion-filter input)))
+
+(define-command execute-command-or-ex ()
+  "Execute a command by name."
+  (with-result (command (read-from-minibuffer
+                         (make-instance 'minibuffer
+                                        :input-prompt ": "
+                                        :completion-function 'ex-command-completion-filter)))
+    (setf (access-time command) (get-internal-real-time))
+    (run command)))
+
+;;
+;; Drop all of my customizations into a mode.
+;;
 (defun set-override-map (buffer)
   "For some reason, hackro's don't work unless they are set in the buffer's
   override map (is `root-mode' taking precedence?)"
   (define-key :keymap (override-map buffer)
+    ":" #'execute-command-or-ex
     "C-[" #'spoof-escape-key))
 
 (defvar *my-keymap* (make-keymap))
@@ -95,10 +132,13 @@ sole active buffer gets deleted."
   "C-x k" #'my-delete-buffer)
 
 (define-mode my-mode ()
-  "Dummy mode for the custom key bindings in `*my-keymap*'."
+  ""
   ((keymap-schemes :initform (list :emacs-map *my-keymap*
                                    :vi-normal *my-keymap*))))
 
+;;
+;; Define customization handlers
+;;
 (defun my-buffer-defaults (buffer)
   (set-override-map buffer)
   (dolist (mode '(my-mode vi-normal-mode blocker-mode))
@@ -109,17 +149,6 @@ sole active buffer gets deleted."
                      #'my-buffer-defaults))
 
 (hooks:add-to-hook '*after-init-hook* #'my-interface-defaults)
-
-;; ;; Create ex abbreviations for cmds. I'm aware that my def-cmd-alias macro is a
-;; ;; dirty hack, and would appreciate advice for a better way to do this.
-;; (defmacro def-cmd-alias (alias original)
-;;   "This doesn't seem like the right way to do this"
-;;   `(progn
-;;      (define-command ,alias () (,original))
-;;      (setf (fdefinition ',alias) #',original)))
-;; ;; Create the abreviations
-;; (def-cmd-alias b switch-buffer)
-;; (def-cmd-alias e set-url-new-buffer)
 
 (define-command open-home-dir ()
   "Open my home directory in a browser window (useful for viewing html exports
@@ -133,7 +162,7 @@ e.g. from org-mode or an Rmarkdown doc)."
 ;; ssh-key for origin/master has already been added to the ssh-agent, hence
 ;; obviating the need for any username/password entry!
 ;;
-;;
+;; TODO: This should probably get broken out into a package...
 (defun is-git-repo (path)
   "Returns path/.git if path contains a .git dir (and is hence assumed to be a
   git repo). Returns nil otherwise."
@@ -261,3 +290,4 @@ of the selected entry."
          db "delete from bookmarks where url = ?" entry)
         (sqlite:disconnect db))
       (bookmark-db-commit "bookmark-db-mv end"))))
+
