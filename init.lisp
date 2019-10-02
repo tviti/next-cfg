@@ -102,25 +102,59 @@ sole active buffer gets deleted."
 (def-cmd-alias b #'switch-buffer)
 (def-cmd-alias e #'set-url-new-buffer)
 
+(define-command ex-insert-candidate (&optional (minibuffer (current-minibuffer)))
+  "Insert completion candidate while preserving the ex-cmd on the input buffer."
+  (let ((candidate (get-candidate minibuffer))
+	(value (input-buffer minibuffer)))
+    ;; TODO: Another hard-coded cmd length
+    (when (and candidate (>= (length value) 2))
+      (kill-whole-line minibuffer)
+      (insert
+       (format nil "~a~a" (subseq value 0 2) candidate) minibuffer))))
+
+(define-mode ex-minibuffer-mode ()
+  "Mode for the minibuffer when an ex-command is input (allows for tab
+completion of ex-command args)."
+  ((keymap-schemes
+    :initform
+    (let ((map (make-keymap)))
+      (define-key "TAB" #'ex-insert-candidate
+	:keymap map)))))
+
+(defun activate-ex-minibuffer-mode (&key (activate t)
+				      (minibuffer (current-minibuffer)))
+  "Turn on the ex-command minibuffer mode."
+  (funcall (sym (mode-command 'ex-minibuffer-mode))
+	   :buffer minibuffer :activate activate))
+
+;; (defmethod ex-completion-handler ((completions 
+
 (defun ex-command-completion-filter (input)
-  "Custom completion function to make sure ex abbrevs. take precedence"
+  "Custom completion function that facilitates argument-passing to ex-commands."
+  ;; TODO: If the length of the ex-command string isn't hardcoded, then we might
+  ;; be able to re-use this for passing args to general cmds.
   (if (and (>= (length input) 2)
 	   (eq (char input 1) #\NO-BREAK_SPACE))
       (let ((cmd-str (format nil "~a" (char input 0)))
-	    (cmd-arg-str (subseq input 2) )
-	    (minibuff (current-minibuffer)))
-	(cond ((string-equal cmd-str "e")
+	    (cmd-arg-str (subseq input 2)))
+	(activate-ex-minibuffer-mode)
+	;; Since there are only two possible commands, it's simpler to just hard
+	;; code them in for now.
+	(cond ((string-equal cmd-str "e") ;; set-url-new-buffer
+	       (let ((completions (funcall (history-completion-filter) cmd-arg-str)))
+		 (push cmd-arg-str completions)
+		 completions))
+	      ((string-equal cmd-str "b") ;; switch-buffer
+	       (funcall (buffer-completion-filter) cmd-arg-str))
+	      (t
 	       (progn
-		 (let ((completions (funcall (history-completion-filter) cmd-arg-str)))
-		   (when (not (str:emptyp (input-buffer minibuff)))
-		     (push cmd-arg-str completions))
-		   completions)))
-	      ((string-equal cmd-str "b")
-	       (progn
-		 (funcall (buffer-completion-filter) cmd-arg-str)))
-	      (t (command-completion-filter input))))))
+		 (activate-ex-minibuffer-mode :activate nil)
+		 (command-completion-filter input)))))
+      (progn
+	(activate-ex-minibuffer-mode :activate nil)
+	(command-completion-filter input))))
 
-;; Dispatch based on ex-command's result
+;; Handlers for minibuffer entry that dispatch based on the commands type.
 (defmethod ex-handler ((buffer buffer))
   (set-current-buffer buffer))
 
@@ -128,7 +162,6 @@ sole active buffer gets deleted."
   (ex-handler (url url)))
 
 (defmethod ex-handler ((url string))
-  (break)
   (let ((buffer (make-buffer)))
     (set-url url :buffer buffer)
     (set-current-buffer buffer))
@@ -139,11 +172,15 @@ sole active buffer gets deleted."
   (run command))
 
 (define-command execute-command-or-ex ()
-  "Execute a command by name."
+  "Execute a command by name. If however the start of the input-buffer is a one
+character long ex-command followed by a space, then the rest of the input-buffer
+string is treated as an argument (as though the user had pressed `RETURN' after
+entering the ex-command's alias)."
   (with-result (result (read-from-minibuffer
-                         (make-instance 'minibuffer
-                                        :input-prompt ":"
-                                        :completion-function 'ex-command-completion-filter)))
+			(make-instance 'minibuffer
+				       :default-modes '(ex-minibuffer-mode minibuffer-mode)
+				       :input-prompt ":"
+				       :completion-function 'ex-command-completion-filter)))
     (ex-handler result)))
 
 ;;
