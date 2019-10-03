@@ -42,6 +42,7 @@
    tab-completable arguments to the ex-style commands. For example, after
    entering =b SPACE=, the prompt should bring up the same completion list as
    ~switch-buffer~.
+*** TODO Update ex-command filter to use multi-select
 ** Use ~C-[~ like ~ESCAPE~
    The chord ~C-[~ is set to spoof an ~ESCAPE~ keypress to the browser core, so
    you can use it for all the same things (e.g. going back to ~vi-normal~ mode,
@@ -79,6 +80,7 @@
    have occurred), and then upon command completion. Like ~select-bookmark-db~,
    the destination database will be created and added to the repo if it does
    not already exist.
+*** TODO Update bookmark-db-mv and bookmark-db-cp to use multi-select
 *** TODO Better system for git interaction 
     - I can't help but feel that the current system is a little excessive with
       commit frequency.

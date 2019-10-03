@@ -1,22 +1,24 @@
 
 # Table of Contents
 
-1.  [Features](#org4affe90)
-    1.  [Automatically determine the `dbus` socket's location on macOS](#org6f0e716)
-    2.  [Make buffer deletion prompt more consistent w/ Emacs](#org7c39b86)
-    3.  [`delete-all-buffers`](#orgbaba2d7)
-    4.  [`open-home-dir`](#org10fc25d)
-    5.  [Vim `ex` style command abbreviations](#org5f75bbb)
-    6.  [Use `C-[` like `ESCAPE`](#org6537bdc)
-    7.  ["Hot-swapping" and version controlling `bookmark-db` files](#org158a85e):bookmarks:
-        1.  [Better system for git interaction](#orgc63a957)
-        2.  [Should we use command hooks for git interaction?](#org66a2cfd)
-        3.  [Allow user to specify remote and branch](#org2e2c093)
-        4.  [Display git command output in minibuffer](#orgba22604)
-        5.  [Password prompts](#org8a49ec0)
-        6.  [Select-bookmark-db should glob for database files](#org14c2b66)
-2.  [`README.org` TODO-list](#orgfa4af27)
-    1.  [Literate style init file?](#orgdff673b)
+1.  [Features](#orgc0604f6)
+    1.  [Automatically determine the `dbus` socket's location on macOS](#orgb87044f)
+    2.  [Make buffer deletion prompt more consistent w/ Emacs](#org6f29e07)
+    3.  [`delete-all-buffers`](#org7fe4d1b)
+    4.  [`open-home-dir`](#orgdda5eed)
+    5.  [Vim `ex` style command abbreviations](#org971dad0)
+        1.  [Update ex-command filter to use multi-select](#org9a5789b)
+    6.  [Use `C-[` like `ESCAPE`](#orgd8bd1c8)
+    7.  ["Hot-swapping" and version controlling `bookmark-db` files](#org464b23b):bookmarks:
+        1.  [Update bookmark-db-mv and bookmark-db-cp to use multi-select](#org0b9837d)
+        2.  [Better system for git interaction](#org4000525)
+        3.  [Should we use command hooks for git interaction?](#orge77d787)
+        4.  [Allow user to specify remote and branch](#org692fc96)
+        5.  [Display git command output in minibuffer](#orge206b0c)
+        6.  [Password prompts](#org09e6e9d)
+        7.  [Select-bookmark-db should glob for database files](#orgf16b79c)
+2.  [`README.org` TODO-list](#org0c41776)
+    1.  [Literate style init file?](#orgcb5c3ee)
 
 A repo for version controlling my `next-browser` init/config file(s).
 
@@ -26,12 +28,12 @@ For more information on `next-browser`, see:
 -   <https://github.com/atlas-engineer/next/blob/master/documents/MANUAL.org>
 
 
-<a id="org4affe90"></a>
+<a id="orgc0604f6"></a>
 
 # Features
 
 
-<a id="org6f0e716"></a>
+<a id="orgb87044f"></a>
 
 ## Automatically determine the `dbus` socket's location on macOS
 
@@ -41,7 +43,7 @@ be pointing to the wrong location, so I query the value of the latter and
 then use it to set the former when `next` starts
 
 
-<a id="org7c39b86"></a>
+<a id="org6f29e07"></a>
 
 ## Make buffer deletion prompt more consistent w/ Emacs
 
@@ -54,7 +56,7 @@ Emacs behavior (the command implementing this is un-creatively termed
 `my-delete-buffer`).
 
 
-<a id="orgbaba2d7"></a>
+<a id="org7fe4d1b"></a>
 
 ## `delete-all-buffers`
 
@@ -62,7 +64,7 @@ The command `delete-all-buffers` will delete ALL buffers except for the
 currently active one.
 
 
-<a id="org10fc25d"></a>
+<a id="orgdda5eed"></a>
 
 ## `open-home-dir`
 
@@ -71,7 +73,7 @@ to me, so when I need to open a local `html` file, I often just start by
 calling `open-home-dir`, and then link-hint my way to where I need to be.
 
 
-<a id="org5f75bbb"></a>
+<a id="org971dad0"></a>
 
 ## Vim `ex` style command abbreviations
 
@@ -90,7 +92,12 @@ entering `b SPACE`, the prompt should bring up the same completion list as
 `switch-buffer`.
 
 
-<a id="org6537bdc"></a>
+<a id="org9a5789b"></a>
+
+### TODO Update ex-command filter to use multi-select
+
+
+<a id="orgd8bd1c8"></a>
 
 ## Use `C-[` like `ESCAPE`
 
@@ -99,7 +106,7 @@ you can use it for all the same things (e.g. going back to `vi-normal` mode,
 or closing the minibuffer prompt).
 
 
-<a id="org158a85e"></a>
+<a id="org464b23b"></a>
 
 ## "Hot-swapping" and version controlling `bookmark-db` files     :bookmarks:
 
@@ -137,7 +144,12 @@ the destination database will be created and added to the repo if it does
 not already exist.
 
 
-<a id="orgc63a957"></a>
+<a id="org0b9837d"></a>
+
+### TODO Update bookmark-db-mv and bookmark-db-cp to use multi-select
+
+
+<a id="org4000525"></a>
 
 ### TODO Better system for git interaction
 
@@ -145,7 +157,7 @@ not already exist.
     commit frequency.
 
 
-<a id="org66a2cfd"></a>
+<a id="orge77d787"></a>
 
 ### TODO Should we use command hooks for git interaction?
 
@@ -157,32 +169,32 @@ not already exist.
     tend to be stupid so&#x2026;)
 
 
-<a id="org2e2c093"></a>
+<a id="org692fc96"></a>
 
 ### TODO Allow user to specify remote and branch
 
 
-<a id="orgba22604"></a>
+<a id="orge206b0c"></a>
 
 ### TODO Display git command output in minibuffer
 
 
-<a id="org8a49ec0"></a>
+<a id="org09e6e9d"></a>
 
 ### TODO Password prompts
 
 
-<a id="org14c2b66"></a>
+<a id="orgf16b79c"></a>
 
 ### TODO Select-bookmark-db should glob for database files
 
 
-<a id="orgfa4af27"></a>
+<a id="org0c41776"></a>
 
 # `README.org` TODO-list
 
 
-<a id="orgdff673b"></a>
+<a id="orgcb5c3ee"></a>
 
 ## TODO Literate style init file?
 
