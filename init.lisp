@@ -280,6 +280,10 @@ e.g. from org-mode or an Rmarkdown doc)."
   "Set the current active bookmark-db (i.e. (bookmark-db *interface*) to
 path. If path lives in a git repo, call `git add path`."
   (setf (bookmarks-path *interface*) path)
+  ;; Wipe the existing bookmark data. Use slot-value for this, since calling
+  ;; (setf (bookmarks-data *interface*) ...) will also call
+  ;; bookmarks-store-function (hence wiping the actual file contents!).
+  (setf (slot-value *interface* 'bookmarks-data) nil)
   (restore-sexp-bookmarks)
   (if (is-git-repo (bookmark-db-dir))
       ;; Add to git repo in case the file was just created
@@ -312,8 +316,11 @@ database. A git add is then performed on the selected file."
       (if (uiop:directory-pathname-p path)
 	  ;; TODO: This echo statement currently doesn't show anything...
 	  (echo (format nil "~a is a directory! Nothing done!" path))
-	  (progn (print (set-bookmark-db path))
-		 (bookmark-db-commit (format nil "select-bookmark-db on ~a" path)))))))
+	  (progn
+	    ;; Wipe the currently loaded entries
+	    ;; (setf (bookmarks-data *interface*) nil)
+	    (print (set-bookmark-db path))
+	    (bookmark-db-commit (format nil "select-bookmark-db on ~a" path)))))))
 
 (define-command bookmark-db-pull ()
   "Do a git pull on the bookmark db repo. Return 'nil if there is no repo."
