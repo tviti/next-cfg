@@ -396,12 +396,13 @@ of the selected entry."
   (let* ((shell-cmd `("emacsclient" "--create-frame" ,tempfile)))
     (uiop:run-program shell-cmd :output :string))
   ;; Read the file's contents to the buffer's active input field.
-  (with-open-file (s tempfile :direction :input)
-    (let ((contents (make-string (file-length s))))
-      (read-sequence contents s)
-      (rpc-buffer-evaluate-javascript
-       (current-buffer)
-       (format nil "document.activeElement.value = `~a`;" contents)))))
+  (let ((output (with-open-file (s tempfile :direction :input)
+		 (let ((contents (make-string (file-length s))))
+		   (read-sequence contents s)
+		   (ppcre:regex-replace-all "`" contents "\\\\`")))))
+    (rpc-buffer-evaluate-javascript
+     (current-buffer)
+     (format nil "document.activeElement.value = `~a`;" (subseq output 0 100)))))
 
 (define-command edit-in-emacs ()
   "Open a new emacs frame using the `emacsclient' mechanism, and place the value
