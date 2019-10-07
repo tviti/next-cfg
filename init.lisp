@@ -97,8 +97,9 @@ sole active buffer gets deleted."
 already existing command, and filter, a minibuffer completion filter."
   `(progn
      (setf (fdefinition ',alias) ,original)
+     ;; NOTE: We store the syms always DOWNCASED!
      (pushnew (make-instance 'command
-			     :sym ',alias
+			     :sym (string-downcase (string ',alias))
 			     :pkg *package*)
 	      *ex-command-list*)
      (pushnew `(,(string-downcase (string ',alias)) ,,filter)
@@ -118,15 +119,16 @@ already existing command, and filter, a minibuffer completion filter."
 (define-command ex-insert-candidate (&optional (minibuffer (current-minibuffer)))
   "Insert completion candidate while preserving the ex-cmd on the input buffer."
   (let* ((value (input-buffer minibuffer))
-	 (split-cmd (uiop:split-string value :separator "  "))
+	 (split-cmd (ex-split-cmd value))
 	 (ex-cmd (first split-cmd))
 	 (candidate (get-candidate minibuffer)))
-    ;; TODO: Another hard-coded cmd length
     (when (and candidate (member ex-cmd (mapcar (lambda (x)
-						  (first x)) *ex-filter-pairs*)))
+						  (string (sym x)))
+						*ex-command-list*)
+				 :test #'string=))
       (kill-whole-line minibuffer)
       (insert
-       (format nil "~a~a" (subseq value 0 2) candidate) minibuffer))))
+       (format nil "~a ~a" ex-cmd candidate) minibuffer))))
 
 (define-mode ex-minibuffer-mode ()
   "Mode for the minibuffer when an ex-command is input (allows for tab
@@ -147,15 +149,21 @@ completion of ex-command args)."
     (funcall (sym (mode-command 'ex-minibuffer-mode))
 	     :buffer minibuffer :activate activate)))
 
+(defun ex-split-cmd (input)
+  ;; For now, we treat only the first space as a delimeter (i.e. all other
+  ;; spaces get lumped into the sole argument)
+  (ppcre:register-groups-bind (cmd args) ("(.*?)[  ](.*?$)" input)
+    (list cmd args)))
+
 (defun ex-command-completion-filter (input)
   "Custom completion function that facilitates argument-passing to ex-commands."
-  (let* ((split-cmd (uiop:split-string input :separator "  "))
+  (let* ((split-cmd (ex-split-cmd input))
 	 (ex-cmd (first split-cmd))
-	 (ex-args (when ex-cmd (subseq split-cmd 1)))
+	 (ex-args (second split-cmd))
 	 (idx (position ex-cmd (mapcar #'first *ex-filter-pairs*)
 			:test #'string=)))
     (if idx
-	(let ((ex-args (first ex-args))) ;; For now, we only deal with first arg
+	(progn
 	  (activate-ex-minibuffer-mode)
 	  (funcall (second (nth idx *ex-filter-pairs*)) ex-args))
 	(progn ;; Just behave like a normal command entry prompt
