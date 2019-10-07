@@ -401,7 +401,7 @@ of the selected entry."
       (read-sequence contents s)
       (rpc-buffer-evaluate-javascript
        (current-buffer)
-       (format nil "document.activeElement.value = `~a`;" contents)))))
+       (format nil "document.activeElement.value = `~a`;" (remove #\Nul contents))))))
 
 (define-command edit-in-emacs ()
   "Open a new emacs frame using the `emacsclient' mechanism, and place the value
