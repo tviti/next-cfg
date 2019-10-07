@@ -384,3 +384,29 @@ of the selected entry."
       (set-bookmark-db origin-db-path)
       (bookmark-db-commit "bookmark-db-mv end"))))
 
+;;
+;; Emacs integration
+;;
+;; TODO: Use a better tempfile name (something more... random)
+(defun edit-in-emacs-callback (js_result &optional (tempfile "/tmp/next-tmp.txt"))
+  ;; Dump the field's contents to a tempfile
+  (with-open-file (s tempfile :direction :output :if-exists :supersede)
+    (format s "~a" js_result))
+  ;; Open an emacs session pointed at the file
+  (let* ((shell-cmd `("emacsclient" "--create-frame" ,tempfile)))
+    (uiop:run-program shell-cmd :output :string))
+  ;; Read the file's contents to the buffer's active input field.
+  (with-open-file (s tempfile :direction :input)
+    (let ((contents (make-string (file-length s))))
+      (read-sequence contents s)
+      (rpc-buffer-evaluate-javascript
+       (current-buffer)
+       (format nil "document.activeElement.value = `~a`;" contents)))))
+
+(define-command edit-in-emacs ()
+  "Open a new emacs frame using the `emacsclient' mechanism, and place the value
+  of the currently selected input element in a temporary buffer. Upon exiting
+  using the <C-x #> keybinding, the text will be placed in the next-buffer's
+  active input element."
+  (rpc-buffer-evaluate-javascript (current-buffer) "document.activeElement.value"
+				  :callback #'edit-in-emacs-callback))
