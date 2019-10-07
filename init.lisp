@@ -24,7 +24,6 @@
       (sb-posix:setenv "DBUS_LAUNCHD_SESSION_BUS_SOCKET" sock_path 1)
       (sb-posix:setenv "DBUS_SESSION_BUS_ADDRESS"
 		       (concatenate 'string "unix:path=" sock_path) 1)))
-
 ;; As an alternative, we can also try just create a new session bus, just for
 ;; next to use (then set the address env var so the port knows where to listen).
 ;; (let ((sock-addr "unix:path=/tmp/dbus/bus"))
@@ -87,27 +86,44 @@ sole active buffer gets deleted."
 ;;
 ;; Vim ex style command abbreviations
 ;;
-(defparameter ex-command-list '()
-  "The list of ex style command abbreviations")
+(defparameter *ex-command-list* '()
+  "The list of ex style command abbreviations.")
 
-(defmacro def-cmd-alias (alias original)
-  "Create ex style abbreviations for cmds."
+(defparameter *ex-filter-pairs* '()
+  "Input filterfunctions for the ex-commands, that can deal with arguments.")
+
+(defmacro def-ex-command (alias original filter)
+  "Create ex style abbreviations for commands. Each abbrev is associated with original,
+already existing command, and filter, a minibuffer completion filter."
   `(progn
      (setf (fdefinition ',alias) ,original)
      (pushnew (make-instance 'command
 			     :sym ',alias
 			     :pkg *package*)
-	      ex-command-list)))
+	      *ex-command-list*)
+     (pushnew `(,(string-downcase (string ',alias)) ,,filter)
+	      *ex-filter-pairs*)))
 
-(def-cmd-alias b #'switch-buffer)
-(def-cmd-alias e #'set-url-new-buffer)
+(defun ex-b-completion-filter (args)
+  (funcall (buffer-completion-filter :current-is-last-p t) args))
+
+(defun ex-e-completion-filter (args)
+  (let ((completions (funcall (history-completion-filter) args)))
+    (push args completions)
+    completions))
+
+(def-ex-command b #'switch-buffer #'ex-b-completion-filter)
+(def-ex-command e #'set-url-new-buffer #'ex-e-completion-filter)
 
 (define-command ex-insert-candidate (&optional (minibuffer (current-minibuffer)))
   "Insert completion candidate while preserving the ex-cmd on the input buffer."
-  (let ((candidate (get-candidate minibuffer))
-	(value (input-buffer minibuffer)))
+  (let* ((value (input-buffer minibuffer))
+	 (split-cmd (uiop:split-string value :separator "  "))
+	 (ex-cmd (first split-cmd))
+	 (candidate (get-candidate minibuffer)))
     ;; TODO: Another hard-coded cmd length
-    (when (and candidate (>= (length value) 2))
+    (when (and candidate (member ex-cmd (mapcar (lambda (x)
+						  (first x)) *ex-filter-pairs*)))
       (kill-whole-line minibuffer)
       (insert
        (format nil "~a~a" (subseq value 0 2) candidate) minibuffer))))
@@ -121,10 +137,6 @@ completion of ex-command args)."
       (define-key :keymap map
 	"TAB" #'ex-insert-candidate)
       (list :emacs map
-            ;; TODO: We could have VI bindings for the minibuffer too.
-            ;; But we need to make sure it's optional + to have an indicator
-            ;; for the mode.  This requires either a change of cursor or a
-            ;; echo area separate from the minibuffer.
             :vi-normal map
             :vi-insert map)))))
 
@@ -135,36 +147,20 @@ completion of ex-command args)."
     (funcall (sym (mode-command 'ex-minibuffer-mode))
 	     :buffer minibuffer :activate activate)))
 
-;; (defmethod ex-completion-handler ((completions 
-
-(defun is-ex-command (str)
-  "Return non-nil if the string represents an ex command call."
-  (and (>= (length str) 2)
-       (eq (char str 1) #\NO-BREAK_SPACE)))
-
 (defun ex-command-completion-filter (input)
   "Custom completion function that facilitates argument-passing to ex-commands."
-  ;; TODO: If the length of the ex-command string isn't hardcoded, then we might
-  ;; be able to re-use this for passing args to general cmds.
-  (if (is-ex-command input)
-      (let ((cmd-str (format nil "~a" (char input 0)))
-	    (cmd-arg-str (subseq input 2)))
-	(activate-ex-minibuffer-mode)
-	;; Since there are only two possible commands, it's simpler to just hard
-	;; code them in for now.
-	(cond ((string-equal cmd-str "e") ;; set-url-new-buffer
-	       (let ((completions (funcall (history-completion-filter) cmd-arg-str)))
-		 (push cmd-arg-str completions)
-		 completions))
-	      ((string-equal cmd-str "b") ;; switch-buffer
-	       (funcall (buffer-completion-filter) cmd-arg-str))
-	      (t
-	       (progn
-		 (activate-ex-minibuffer-mode :activate nil)
-		 (command-completion-filter input)))))
-      (progn
-	(activate-ex-minibuffer-mode :activate nil)
-	(command-completion-filter input))))
+  (let* ((split-cmd (uiop:split-string input :separator "  "))
+	 (ex-cmd (first split-cmd))
+	 (ex-args (when ex-cmd (subseq split-cmd 1)))
+	 (idx (position ex-cmd (mapcar #'first *ex-filter-pairs*)
+			:test #'string=)))
+    (if idx
+	(let ((ex-args (first ex-args))) ;; For now, we only deal with first arg
+	  (activate-ex-minibuffer-mode)
+	  (funcall (second (nth idx *ex-filter-pairs*)) ex-args))
+	(progn ;; Just behave like a normal command entry prompt
+	  (activate-ex-minibuffer-mode :activate nil)
+	  (command-completion-filter input)))))
 
 ;; Handlers for minibuffer entry that dispatch based on the commands type.
 (defmethod ex-handler ((buffer buffer))
