@@ -397,11 +397,16 @@ of the selected entry."
     (uiop:run-program shell-cmd :output :string))
   ;; Read the file's contents to the buffer's active input field.
   (with-open-file (s tempfile :direction :input)
-    (let ((contents (make-string (file-length s))))
+    (let ((contents (make-string (file-length s)))
+	  (output nil))
       (read-sequence contents s)
+      ;; Escape backticks (since those are JS multiline string char).
+      (setq output (ppcre:regex-replace-all "`" contents "\\\\`"))
+      ;; Strip weird chars added by gmail
+      (setq (remove #\Nul contents))
       (rpc-buffer-evaluate-javascript
        (current-buffer)
-       (format nil "document.activeElement.value = `~a`;" (remove #\Nul contents))))))
+       (format nil "document.activeElement.value = `~a`;" output)))))
 
 (define-command edit-in-emacs ()
   "Open a new emacs frame using the `emacsclient' mechanism, and place the value
