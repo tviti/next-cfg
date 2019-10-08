@@ -393,31 +393,33 @@ of the selected entry."
 ;; Emacs integration
 ;;
 ;; TODO: Use a better tempfile name (something more... random)
-(defun edit-in-emacs-callback (js_result &optional (tempfile "/tmp/next-tmp.txt"))
-  ;; Dump the field's contents to a tempfile
+(defun edit-str-with-emacs (str tempfile)
+  "Dump the contents of str to the temporary file tempfile, then open tempfile
+in Emacs for editing. Note that this call is synchronous!"
+  ;; Dump the cell's contents to a tempfile
   (with-open-file (s tempfile :direction :output :if-exists :supersede)
-    (format s "~a" js_result))
-  ;; Open an emacs session pointed at the file
-  (let* ((shell-cmd `("emacsclient" "--create-frame" ,tempfile)))
+    ;; Replace \n with literal newlines
+    (format s "~a" (ppcre:regex-replace-all "\\\\n" str "
+")))
+  ;; Open an emacs buffer pointed at the file
+  (let* ((shell-cmd `("emacsclient" ,tempfile)))
     (uiop:run-program shell-cmd :output :string))
-  ;; Read the file's contents to the buffer's active input field.
+  ;; Read the file's contents to the browser buffer's active input field.
   (with-open-file (s tempfile :direction :input)
-    (let ((contents (make-string (file-length s)))
-	  (output nil))
+    (let ((contents (make-string (file-length s))))
       (read-sequence contents s)
       ;; Escape backticks (since those are JS multiline string char).
-      (setq output (ppcre:regex-replace-all "`" contents "\\\\`"))
-      ;; Strip weird chars added by gmail
-      (setq (remove #\Nul contents))
-      (rpc-buffer-evaluate-javascript
-       (current-buffer)
-       (format nil "document.activeElement.value = `~a`;" output)))))
+      (ppcre:regex-replace-all "`" contents "\\\\`"))))
 
 (define-command edit-in-emacs ()
   "Open a new emacs frame using the `emacsclient' mechanism, and place the value
   of the currently selected input element in a temporary buffer. Upon exiting
   using the <C-x #> keybinding, the text will be placed in the next-buffer's
   active input element."
-  (rpc-buffer-evaluate-javascript (current-buffer)
-				  "document.activeElement.value"
-				  :callback #'edit-in-emacs-callback))
+  (rpc-buffer-evaluate-javascript
+   (current-buffer) "document.activeElement.value"
+   :callback (lambda (retval)
+	       (let ((str (edit-str-with-emacs retval "/tmp/next-tmp.txt")))
+		 (rpc-buffer-evaluate-javascript
+		  (current-buffer) (format nil "document.activeElement.value = `~a`;"
+					   (remove #\Nul str)))))))
