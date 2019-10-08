@@ -384,6 +384,11 @@ of the selected entry."
       (set-bookmark-db origin-db-path)
       (bookmark-db-commit "bookmark-db-mv end"))))
 
+(define-command new-tab-from-bookmark ()
+  "Open a new tab with url set from a bookmark in the current db."
+  (make-buffer-focus)
+  (set-url-from-bookmark))
+
 ;;
 ;; Emacs integration
 ;;
@@ -413,5 +418,6 @@ of the selected entry."
   of the currently selected input element in a temporary buffer. Upon exiting
   using the <C-x #> keybinding, the text will be placed in the next-buffer's
   active input element."
-  (rpc-buffer-evaluate-javascript (current-buffer) "document.activeElement.value"
+  (rpc-buffer-evaluate-javascript (current-buffer)
+				  "document.activeElement.value"
 				  :callback #'edit-in-emacs-callback))
