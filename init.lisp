@@ -408,8 +408,9 @@ in Emacs for editing. Note that this call is synchronous!"
       (read-sequence contents s)
       contents)))
 
-(defun edit-in-emacs-callback (retval buffer)
-  (let ((output (edit-str-with-emacs retval "/tmp/next-tmp.txt")))
+(defun edit-in-emacs-callback (retval buffer
+			       &optional (tempfile "/tmp/next-tmp.txt"))
+  (let ((output (edit-str-with-emacs retval tempfile)))
     (rpc-buffer-evaluate-javascript
      buffer
      (ps:ps (setf (ps:@ document active-element value) (ps:lisp output))))))
@@ -419,8 +420,13 @@ in Emacs for editing. Note that this call is synchronous!"
   of the currently selected input element in a temporary buffer. Upon exiting
   using the <C-x #> keybinding, the text will be placed in the next-buffer's
   active input element."
-  (rpc-buffer-evaluate-javascript
-   (current-buffer)
-   (ps:ps (ps:@ document active-element value))
-   :callback (lambda (retval)
-	       (edit-in-emacs-callback retval (current-buffer)))))
+  (with-result (ext (read-from-minibuffer
+		       (make-instance 'minibuffer
+				      :input-prompt "temp-file ext (default .txt):")))
+    (let ((tempfile (format nil "/tmp/next-tmp~a" (if ext ext ".txt"))))
+      (rpc-buffer-evaluate-javascript
+       (current-buffer)
+       (ps:ps (ps:@ document active-element value))
+       :callback (lambda (retval)
+		   (edit-in-emacs-callback
+		    retval (current-buffer) tempfile))))))
