@@ -399,17 +399,20 @@ in Emacs for editing. Note that this call is synchronous!"
   ;; Dump the cell's contents to a tempfile
   (with-open-file (s tempfile :direction :output :if-exists :supersede)
     ;; Replace \n with literal newlines
-    (format s "~a" (ppcre:regex-replace-all "\\\\n" str "
-")))
+    (format s "~a" str))
   ;; Open an emacs buffer pointed at the file
-  (let* ((shell-cmd `("emacsclient" ,tempfile)))
-    (uiop:run-program shell-cmd :output :string))
-  ;; Read the file's contents to the browser buffer's active input field.
+  (uiop:run-program `("emacsclient" ,tempfile) :output :string)
+  ;; Read the file contents back in
   (with-open-file (s tempfile :direction :input)
     (let ((contents (make-string (file-length s))))
       (read-sequence contents s)
-      ;; Escape backticks (since those are JS multiline string char).
-      (ppcre:regex-replace-all "`" contents "\\\\`"))))
+      contents)))
+
+(defun edit-in-emacs-callback (retval buffer)
+  (let ((output (edit-str-with-emacs retval "/tmp/next-tmp.txt")))
+    (rpc-buffer-evaluate-javascript
+     buffer
+     (ps:ps (setf (ps:@ document active-element value) (ps:lisp output))))))
 
 (define-command edit-in-emacs ()
   "Open a new emacs frame using the `emacsclient' mechanism, and place the value
@@ -417,9 +420,7 @@ in Emacs for editing. Note that this call is synchronous!"
   using the <C-x #> keybinding, the text will be placed in the next-buffer's
   active input element."
   (rpc-buffer-evaluate-javascript
-   (current-buffer) "document.activeElement.value"
+   (current-buffer)
+   (ps:ps (ps:@ document active-element value))
    :callback (lambda (retval)
-	       (let ((str (edit-str-with-emacs retval "/tmp/next-tmp.txt")))
-		 (rpc-buffer-evaluate-javascript
-		  (current-buffer) (format nil "document.activeElement.value = `~a`;"
-					   (remove #\Nul str)))))))
+	       (edit-in-emacs-callback retval (current-buffer)))))
