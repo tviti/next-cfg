@@ -39,25 +39,6 @@
 ;; 		     :output :interactive)
 ;; (sleep 2)  ;; Take a breather (otherwise core can't connect for some reason)
 
-(defun my-buffer-completion-filter ()
-  (let ((buffers (alexandria:hash-table-values (buffers *interface*)))
-        (active-buffer (current-buffer)))
-    ;; Make the active buffer the first buffer in the list
-    (when (not (equal (first buffers) active-buffer))
-      (push active-buffer buffers))
-    (lambda (input) (fuzzy-match input buffers))))
-
-(define-command my-delete-buffer ()
-  "Delete the buffer via minibuffer input. This is basically identical to the
-original implementation, but uses a slightly modified completion function that
-makes the active buffer the default deletion (i.e. how it is in Emacs)."
-  (with-result (buffers (read-from-minibuffer
-			 (make-instance 'minibuffer
-					:input-prompt "Kill buffer:"
-					:multi-selection-p t
-					:completion-function (my-buffer-completion-filter))))
-    (mapcar #'rpc-buffer-delete buffers)))
-
 (define-command delete-all-buffers ()
   "Delete ALL buffers, EXCEPT for the active buffer. I'd prefer to just delete
 ALL of them (even the active buffer), but Next doesn't seem to like it when the
@@ -205,8 +186,8 @@ pressed `RETURN' after entering the ex-command's alias)."
 (defvar *my-keymap* (make-keymap))
 (define-key :keymap *my-keymap*
   ":" #'execute-command-or-ex
-  "C-x k" #'my-delete-buffer
   "y" #'next/web-mode:copy
+  "C-x k" #'delete-buffer
   "p" #'next/web-mode:paste
   "P" #'next/web-mode:paste-from-ring)
 
