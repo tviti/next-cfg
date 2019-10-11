@@ -186,7 +186,6 @@ pressed `RETURN' after entering the ex-command's alias)."
 (defvar *my-keymap* (make-keymap))
 (define-key :keymap *my-keymap*
   ":" #'execute-command-or-ex
-  "y" #'next/web-mode:copy
   "C-x k" #'delete-buffer
   "p" #'next/web-mode:paste
   "P" #'next/web-mode:paste-from-ring)
