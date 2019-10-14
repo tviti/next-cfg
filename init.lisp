@@ -382,6 +382,10 @@ in Emacs for editing. Note that this call is synchronous!"
 ;;
 (defvar *my-keymap* (make-keymap))
 (define-key :keymap *my-keymap*
+  "C-c b s" #'select-bookmark-db
+  "C-c b m" #'bookmark-db-mv
+  "C-c b c" #'bookmark-db-cp
+  "C-c b b" #'make-buffer-from-bookmark
   ":" #'execute-command-or-ex
   "C-x k" #'delete-buffer
   "p" #'next/web-mode:paste
