@@ -329,10 +329,11 @@ of the selected entry."
       (set-bookmark-db origin-db-path)
       (bookmark-db-commit "bookmark-db-mv end"))))
 
-(define-command new-tab-from-bookmark ()
+(define-command make-buffer-from-bookmark ()
   "Open a new tab with url set from a bookmark in the current db."
-  (make-buffer-focus)
-  (set-url-from-bookmark))
+  (let ((buffer (make-buffer)))
+    (set-current-buffer buffer)
+    (set-url-from-bookmark)))
 
 ;;
 ;; Emacs integration
