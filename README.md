@@ -1,24 +1,23 @@
 
 # Table of Contents
 
-1.  [Features](#orgc0604f6)
-    1.  [Automatically determine the `dbus` socket's location on macOS](#orgb87044f)
-    2.  [Make buffer deletion prompt more consistent w/ Emacs](#org6f29e07)
-    3.  [`delete-all-buffers`](#org7fe4d1b)
-    4.  [`open-home-dir`](#orgdda5eed)
-    5.  [Vim `ex` style command abbreviations](#org971dad0)
-        1.  [Update ex-command filter to use multi-select](#org9a5789b)
-    6.  [Use `C-[` like `ESCAPE`](#orgd8bd1c8)
-    7.  ["Hot-swapping" and version controlling `bookmark-db` files](#org464b23b):bookmarks:
-        1.  [Update bookmark-db-mv and bookmark-db-cp to use multi-select](#org0b9837d)
-        2.  [Better system for git interaction](#org4000525)
-        3.  [Should we use command hooks for git interaction?](#orge77d787)
-        4.  [Allow user to specify remote and branch](#org692fc96)
-        5.  [Display git command output in minibuffer](#orge206b0c)
-        6.  [Password prompts](#org09e6e9d)
-        7.  [Select-bookmark-db should glob for database files](#orgf16b79c)
-2.  [`README.org` TODO-list](#org0c41776)
-    1.  [Literate style init file?](#orgcb5c3ee)
+1.  [Features](#orgc4aa039)
+    1.  [Automatically determine the `dbus` socket's location on macOS](#org39035b9)
+    2.  [Vim `ex` style command abbreviations](#org5d2ba55)
+        1.  [Update ex-command filter to use multi-select](#org9413b54)
+    3.  ["Hot-swapping" and version controlling `bookmark-db` files](#org85d671f):bookmarks:
+        1.  [Select-bookmark-db should glob for database files](#org39443bf)
+        2.  [Update bookmark-db-mv and bookmark-db-cp to use multi-select](#org2899447)
+        3.  [Better system for git interaction](#org5ec590c)
+        4.  [Should we use command hooks for git interaction?](#org80a4e2e)
+        5.  [Allow user to specify remote and branch](#org42d2e83)
+        6.  [Display git command output in minibuffer](#org3a7f173)
+        7.  [Password prompts](#org24830a1)
+    4.  [Use `C-[` like `ESCAPE`](#org69f3a20)
+    5.  [`delete-all-buffers`](#org8e38976)
+    6.  [`open-home-dir`](#org2ebda33)
+2.  [`README.org` TODO-list](#orgd61c527)
+    1.  [Literate style init file?](#org00eb691)
 
 A repo for version controlling my `next-browser` init/config file(s).
 
@@ -28,52 +27,22 @@ For more information on `next-browser`, see:
 -   <https://github.com/atlas-engineer/next/blob/master/documents/MANUAL.org>
 
 
-<a id="orgc0604f6"></a>
+<a id="orgc4aa039"></a>
 
 # Features
 
 
-<a id="orgb87044f"></a>
+<a id="org39035b9"></a>
 
 ## Automatically determine the `dbus` socket's location on macOS
 
 macOS doesn't define the env var `DBUS_SESSION_BUS_ADDRESS` on it's own, and
 I have also noticed that often times `DBUS_LAUNCHD_SESSION_BUS_SOCKET` will
 be pointing to the wrong location, so I query the value of the latter and
-then use it to set the former when `next` starts
+then use it to set the former when `next` starts.
 
 
-<a id="org6f29e07"></a>
-
-## Make buffer deletion prompt more consistent w/ Emacs
-
-The default behavior of `C-x k` in Emacs (at least with `evil-mode` active)
-is to query the user for a buffer to delete, with the default being the
-active buffer, while in `next`, the completion function for the
-`delete-buffer` command explicitly selects a non-active buffer as the default
-for deletion. Here, I use a modified completion function that retains the
-Emacs behavior (the command implementing this is un-creatively termed
-`my-delete-buffer`).
-
-
-<a id="org7fe4d1b"></a>
-
-## `delete-all-buffers`
-
-The command `delete-all-buffers` will delete ALL buffers except for the
-currently active one.
-
-
-<a id="orgdda5eed"></a>
-
-## `open-home-dir`
-
-The current file manager implementation felt a little un-intuitive and clunky
-to me, so when I need to open a local `html` file, I often just start by
-calling `open-home-dir`, and then link-hint my way to where I need to be.
-
-
-<a id="org971dad0"></a>
+<a id="org5d2ba55"></a>
 
 ## Vim `ex` style command abbreviations
 
@@ -92,21 +61,12 @@ entering `b SPACE`, the prompt should bring up the same completion list as
 `switch-buffer`.
 
 
-<a id="org9a5789b"></a>
+<a id="org9413b54"></a>
 
 ### TODO Update ex-command filter to use multi-select
 
 
-<a id="orgd8bd1c8"></a>
-
-## Use `C-[` like `ESCAPE`
-
-The chord `C-[` is set to spoof an `ESCAPE` keypress to the browser core, so
-you can use it for all the same things (e.g. going back to `vi-normal` mode,
-or closing the minibuffer prompt).
-
-
-<a id="org464b23b"></a>
+<a id="org85d671f"></a>
 
 ## "Hot-swapping" and version controlling `bookmark-db` files     :bookmarks:
 
@@ -144,12 +104,17 @@ the destination database will be created and added to the repo if it does
 not already exist.
 
 
-<a id="org0b9837d"></a>
+<a id="org39443bf"></a>
+
+### TODO Select-bookmark-db should glob for database files
+
+
+<a id="org2899447"></a>
 
 ### TODO Update bookmark-db-mv and bookmark-db-cp to use multi-select
 
 
-<a id="org4000525"></a>
+<a id="org5ec590c"></a>
 
 ### TODO Better system for git interaction
 
@@ -157,7 +122,7 @@ not already exist.
     commit frequency.
 
 
-<a id="orge77d787"></a>
+<a id="org80a4e2e"></a>
 
 ### TODO Should we use command hooks for git interaction?
 
@@ -169,32 +134,53 @@ not already exist.
     tend to be stupid so&#x2026;)
 
 
-<a id="org692fc96"></a>
+<a id="org42d2e83"></a>
 
 ### TODO Allow user to specify remote and branch
 
 
-<a id="orge206b0c"></a>
+<a id="org3a7f173"></a>
 
 ### TODO Display git command output in minibuffer
 
 
-<a id="org09e6e9d"></a>
+<a id="org24830a1"></a>
 
 ### TODO Password prompts
 
 
-<a id="orgf16b79c"></a>
+<a id="org69f3a20"></a>
 
-### TODO Select-bookmark-db should glob for database files
+## Use `C-[` like `ESCAPE`
+
+The chord `C-[` is set to spoof an `ESCAPE` keypress to the browser core, so
+you can use it for all the same things (e.g. going back to `vi-normal` mode,
+or closing the minibuffer prompt).
 
 
-<a id="org0c41776"></a>
+<a id="org8e38976"></a>
+
+## `delete-all-buffers`
+
+The command `delete-all-buffers` will delete ALL buffers except for the
+currently active one.
+
+
+<a id="org2ebda33"></a>
+
+## `open-home-dir`
+
+The current file manager implementation felt a little un-intuitive and clunky
+to me, so when I need to open a local `html` file, I often just start by
+calling `open-home-dir`, and then link-hint my way to where I need to be.
+
+
+<a id="orgd61c527"></a>
 
 # `README.org` TODO-list
 
 
-<a id="orgcb5c3ee"></a>
+<a id="org00eb691"></a>
 
 ## TODO Literate style init file?
 

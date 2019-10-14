@@ -12,22 +12,7 @@
    macOS doesn't define the env var =DBUS_SESSION_BUS_ADDRESS= on it's own, and
    I have also noticed that often times =DBUS_LAUNCHD_SESSION_BUS_SOCKET= will
    be pointing to the wrong location, so I query the value of the latter and
-   then use it to set the former when =next= starts
-** Make buffer deletion prompt more consistent w/ Emacs
-   The default behavior of ~C-x k~ in Emacs (at least with =evil-mode= active)
-   is to query the user for a buffer to delete, with the default being the
-   active buffer, while in =next=, the completion function for the
-   =delete-buffer= command explicitly selects a non-active buffer as the default
-   for deletion. Here, I use a modified completion function that retains the
-   Emacs behavior (the command implementing this is un-creatively termed
-   =my-delete-buffer=).
-** ~delete-all-buffers~
-   The command ~delete-all-buffers~ will delete ALL buffers except for the
-   currently active one.
-** ~open-home-dir~
-   The current file manager implementation felt a little un-intuitive and clunky
-   to me, so when I need to open a local =html= file, I often just start by
-   calling ~open-home-dir~, and then link-hint my way to where I need to be.
+   then use it to set the former when =next= starts.
 ** Vim =ex= style command abbreviations
    In Emacs, I rely heavily on the ~b~ and ~e~ =ex= commands for swapping
    buffers and opening files. Here, they are aliases for ~switch-buffer~ and
@@ -43,10 +28,6 @@
    entering =b SPACE=, the prompt should bring up the same completion list as
    ~switch-buffer~.
 *** TODO Update ex-command filter to use multi-select
-** Use ~C-[~ like ~ESCAPE~
-   The chord ~C-[~ is set to spoof an ~ESCAPE~ keypress to the browser core, so
-   you can use it for all the same things (e.g. going back to ~vi-normal~ mode,
-   or closing the minibuffer prompt).
 ** "Hot-swapping" and version controlling ~bookmark-db~ files     :bookmarks:
    The command ~select-bookmark-db~ allows you to change ~bookmark-db-path~
    (i.e. the "active" bookmark database file) on the fly, via a minibuffer
@@ -80,6 +61,7 @@
    have occurred), and then upon command completion. Like ~select-bookmark-db~,
    the destination database will be created and added to the repo if it does
    not already exist.
+*** TODO Select-bookmark-db should glob for database files
 *** TODO Update bookmark-db-mv and bookmark-db-cp to use multi-select
 *** TODO Better system for git interaction 
     - I can't help but feel that the current system is a little excessive with
@@ -94,7 +76,17 @@
 *** TODO Allow user to specify remote and branch
 *** TODO Display git command output in minibuffer
 *** TODO Password prompts
-*** TODO Select-bookmark-db should glob for database files
+** Use ~C-[~ like ~ESCAPE~
+   The chord ~C-[~ is set to spoof an ~ESCAPE~ keypress to the browser core, so
+   you can use it for all the same things (e.g. going back to ~vi-normal~ mode,
+   or closing the minibuffer prompt).
+** ~delete-all-buffers~
+   The command ~delete-all-buffers~ will delete ALL buffers except for the
+   currently active one.
+** ~open-home-dir~
+   The current file manager implementation felt a little un-intuitive and clunky
+   to me, so when I need to open a local =html= file, I often just start by
+   calling ~open-home-dir~, and then link-hint my way to where I need to be.
 * =README.org= TODO-list
 ** TODO Literate style init file?
    Vindarel's /literate style/ init file using =erudite= is really damned
