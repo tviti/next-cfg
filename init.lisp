@@ -180,41 +180,6 @@ pressed `RETURN' after entering the ex-command's alias)."
 				       :completion-function 'ex-command-completion-filter)))
     (ex-handler result)))
 
-;;
-;; Drop all of my customizations into a mode.
-;;
-(defvar *my-keymap* (make-keymap))
-(define-key :keymap *my-keymap*
-  ":" #'execute-command-or-ex
-  "C-x k" #'delete-buffer
-  "p" #'next/web-mode:paste
-  "P" #'next/web-mode:paste-from-ring)
-
-(define-mode my-mode ()
-  ""
-  ((keymap-schemes :initform (list :emacs-map *my-keymap*
-                                   :vi-normal *my-keymap*))))
-
-;;
-;; Define customization handlers
-;;
-(defun set-override-map (buffer)
-  "For some reason, certain bindings don't work unless they are set in the
-  buffer's override map (is `root-mode' taking precedence?)"
-  (define-key :keymap (override-map buffer)
-    "C-[" #'spoof-escape-key))
-
-(defun my-buffer-defaults (buffer)
-  (set-override-map buffer)
-  (let ((my-mode-list '(my-mode vi-normal-mode blocker-mode)))
-    (setf (default-modes buffer)
-	  (concatenate 'list my-mode-list (default-modes buffer)))))
-
-(defun my-interface-defaults ()
-  (hooks:add-to-hook (hooks:object-hook *interface* 'buffer-make-hook)
-                     #'my-buffer-defaults))
-
-(hooks:add-to-hook '*after-init-hook* #'my-interface-defaults)
 
 (define-command open-home-dir ()
   "Open my home directory in a browser window (useful for viewing html exports
@@ -410,3 +375,38 @@ in Emacs for editing. Note that this call is synchronous!"
        :callback (lambda (retval)
 		   (edit-in-emacs-callback
 		    retval (current-buffer) tempfile))))))
+
+;;
+;; Drop all of my customizations into a mode.
+;;
+(defvar *my-keymap* (make-keymap))
+(define-key :keymap *my-keymap*
+  ":" #'execute-command-or-ex
+  "C-x k" #'delete-buffer
+  "p" #'next/web-mode:paste
+  "P" #'next/web-mode:paste-from-ring)
+
+(define-mode my-mode ()
+  ""
+  ((keymap-schemes :initform (list :emacs-map *my-keymap*
+                                   :vi-normal *my-keymap*))))
+
+;;
+;; Define customization handlers
+;;
+(defun set-override-map (buffer)
+  "For some reason, certain bindings don't work unless they are set in the
+  buffer's override map (is `root-mode' taking precedence?)"
+  (define-key :keymap (override-map buffer)
+    "C-[" #'spoof-escape-key))
+(defun my-buffer-defaults (buffer)
+  (set-override-map buffer)
+  (let ((my-mode-list '(my-mode vi-normal-mode blocker-mode)))
+    (setf (default-modes buffer)
+	  (concatenate 'list my-mode-list (default-modes buffer)))))
+
+(defun my-interface-defaults ()
+  (hooks:add-to-hook (hooks:object-hook *interface* 'buffer-make-hook)
+                     #'my-buffer-defaults))
+
+(hooks:add-to-hook '*after-init-hook* #'my-interface-defaults)
