@@ -39,6 +39,25 @@
 ;; 		     :output :interactive)
 ;; (sleep 2)  ;; Take a breather (otherwise core can't connect for some reason)
 
+(defun my-buffer-completion-filter ()
+  (let ((buffers (alexandria:hash-table-values (buffers *interface*)))
+        (active-buffer (current-buffer)))
+    ;; Make the active buffer the first buffer in the list
+    (when (not (equal (first buffers) active-buffer))
+      (push active-buffer buffers))
+    (lambda (input) (fuzzy-match input buffers))))
+
+(define-command my-delete-buffer ()
+  "Delete the buffer via minibuffer input. This is basically identical to the
+original implementation, but uses a slightly modified completion function that
+makes the active buffer the default deletion (i.e. how it is in Emacs)."
+  (with-result (buffers (read-from-minibuffer
+			 (make-instance 'minibuffer
+					:input-prompt "Kill buffer(s):"
+					:multi-selection-p t
+					:completion-function (my-buffer-completion-filter))))
+    (mapcar #'rpc-buffer-delete buffers)))
+
 (define-command delete-all-buffers ()
   "Delete ALL buffers, EXCEPT for the active buffer. I'd prefer to just delete
 ALL of them (even the active buffer), but Next doesn't seem to like it when the
@@ -329,6 +348,25 @@ of the selected entry."
       (set-bookmark-db origin-db-path)
       (bookmark-db-commit "bookmark-db-mv end"))))
 
+(define-command edit-bookmark-title ()
+  "Edit the title of a bookmark entry."
+  (with-result* ((entry (read-from-minibuffer
+			 (make-instance 'minibuffer
+					:input-prompt "Bookmark:"
+					:completion-function (bookmark-completion-filter))))
+		 (title (read-from-minibuffer
+			 (make-instance 'minibuffer
+					:input-prompt "Title:"
+					:empty-complete-immediate t
+					:completion-function (lambda (x) `(,(title entry)))))))
+    ;; This is ripped from the body of (bookmark-delete)
+    ;; TODO: copy-pasta
+    (setf (bookmarks-data *interface*) ;; Remove the entry
+	  (set-difference (bookmarks-data *interface*) (list entry) :test #'equals))
+    (unless (str:emptyp title)
+      (setf (title entry) title))
+    (push entry (bookmarks-data *interface*))))
+  
 (define-command make-buffer-from-bookmark ()
   "Open a new tab with url set from a bookmark in the current db."
   (let ((buffer (make-buffer)))
@@ -382,12 +420,13 @@ in Emacs for editing. Note that this call is synchronous!"
 ;;
 (defvar *my-keymap* (make-keymap))
 (define-key :keymap *my-keymap*
+  "C-c '" #'edit-in-emacs
   "C-c b s" #'select-bookmark-db
   "C-c b m" #'bookmark-db-mv
   "C-c b c" #'bookmark-db-cp
   "C-c b b" #'make-buffer-from-bookmark
   ":" #'execute-command-or-ex
-  "C-x k" #'delete-buffer
+  "C-x k" #'my-delete-buffer
   "p" #'next/web-mode:paste
   "P" #'next/web-mode:paste-from-ring)
 
@@ -409,9 +448,49 @@ in Emacs for editing. Note that this call is synchronous!"
   (let ((my-mode-list '(my-mode vi-normal-mode blocker-mode)))
     (setf (default-modes buffer)
 	  (concatenate 'list my-mode-list (default-modes buffer)))))
+;;
+;; Minibuffer customizations
+;;
+(defvar *my-minibuffer-style* (cl-css:css
+			       '((* :font-family "Inconsolata")
+				 (body :border-top "4px solid dimgray"
+				  :margin "0"
+				  :padding "0 6px")
+				 ("#container" :display "flex"
+				  :flex-flow "column"
+				  :height "100%")
+				 ("#input" :padding "6px 0"
+				  :border-bottom "solid 1px lightgray")
+				 ("#completions" :flex-grow "1"
+				  :overflow-y "auto"
+				  :overflow-x "auto")
+				 ("#cursor" :background-color "gray"
+				  :color "white")
+				 ("#prompt" :padding-right "4px"
+				  :color "dimgray")
+				 (ul :list-style "none"
+				  :padding "0"
+				  :margin "0")
+				 (li :padding "2px")
+				 (.marked :background-color "darkgray"
+				  :font-weight "bold"
+				  :color "white")
+				 ;; .selected must be set _after_ .marked so
+				 ;; that it overrides its attributes since the
+				 ;; candidate can be both marked and selected.
+				 (.selected :background-color "gray"
+				  :color "white"))))
+  
+
+(defun my-minibuffer-defaults (minibuffer)
+  ""
+  (setf (minibuffer-style minibuffer) *my-minibuffer-style*))
 
 (defun my-interface-defaults ()
   (hooks:add-to-hook (hooks:object-hook *interface* 'buffer-make-hook)
-                     #'my-buffer-defaults))
+                     #'my-buffer-defaults)
+  (hooks:add-to-hook (hooks:object-hook *interface* 'minibuffer-make-hook)
+		     #'my-minibuffer-defaults))
 
 (hooks:add-to-hook '*after-init-hook* #'my-interface-defaults)
+
