@@ -416,6 +416,17 @@ in Emacs for editing. Note that this call is synchronous!"
 		    retval (current-buffer) tempfile))))))
 
 ;;
+;; User defined CSS styles
+;;
+;; Load the user-styles "mode"
+(load (merge-pathnames "user-styles.lisp" *load-truename*))
+
+;; Load a stylesheet
+(defparameter *user-style-path*
+  "~/common-lisp/solarized-everything-css/css/solarized-dark/solarized-dark-all-sites.css")
+(load-stylesheet *user-style-path*)
+
+;;
 ;; Drop all of my customizations into a mode.
 ;;
 (defvar *my-keymap* (make-keymap))
@@ -443,11 +454,15 @@ in Emacs for editing. Note that this call is synchronous!"
   buffer's override map (is `root-mode' taking precedence?)"
   (define-key :keymap (override-map buffer)
     "C-[" #'spoof-escape-key))
+
 (defun my-buffer-defaults (buffer)
   (set-override-map buffer)
-  (let ((my-mode-list '(my-mode vi-normal-mode blocker-mode)))
+  ;; Assign default modes. Order is important, since keybindings take
+  ;; precedence based on the list's order (first ele is highest precedence).
+  (let ((my-mode-list '(my-mode vi-normal-mode user-style-mode blocker-mode)))
     (setf (default-modes buffer)
 	  (concatenate 'list my-mode-list (default-modes buffer)))))
+
 ;;
 ;; Minibuffer customizations
 ;;
@@ -486,6 +501,7 @@ in Emacs for editing. Note that this call is synchronous!"
   ""
   (setf (minibuffer-style minibuffer) *my-minibuffer-style*))
 
+;; Use the hooks mechanism to apply all the customizations
 (defun my-interface-defaults ()
   (hooks:add-to-hook (hooks:object-hook *interface* 'buffer-make-hook)
                      #'my-buffer-defaults)
