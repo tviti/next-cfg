@@ -349,23 +349,26 @@ of the selected entry."
       (bookmark-db-commit "bookmark-db-mv end"))))
 
 (define-command edit-bookmark-title ()
-  "Edit the title of a bookmark entry."
+  "Edit the title of an existing bookmark entry (in the currently active db)."
   (with-result* ((entry (read-from-minibuffer
 			 (make-instance 'minibuffer
 					:input-prompt "Bookmark:"
-					:completion-function (bookmark-completion-filter))))
+					:completion-function
+					(bookmark-completion-filter))))
 		 (title (read-from-minibuffer
 			 (make-instance 'minibuffer
 					:input-prompt "Title:"
-					:empty-complete-immediate t
-					:completion-function (lambda (x) `(,(title entry)))))))
-    ;; This is ripped from the body of (bookmark-delete)
-    ;; TODO: copy-pasta
-    (setf (bookmarks-data *interface*) ;; Remove the entry
-	  (set-difference (bookmarks-data *interface*) (list entry) :test #'equals))
+					:completion-function
+					(lambda (x) (list x (title entry)))))))
     (unless (str:emptyp title)
-      (setf (title entry) title))
-    (push entry (bookmarks-data *interface*))))
+      ;; Delete the old entry. This is ripped from the body of `bookmark-delete'
+      ;; TODO: copy-pasta
+      (setf (bookmarks-data *interface*) ;; Remove the entry
+	    (set-difference (bookmarks-data *interface*) (list entry)
+			    :test #'equals))
+      ;; Set the new entry's title, then stuff it into the db
+      (setf (title entry) title)
+      (push entry (bookmarks-data *interface*)))))
   
 (define-command make-buffer-from-bookmark ()
   "Open a new tab with url set from a bookmark in the current db."
@@ -459,7 +462,7 @@ in Emacs for editing. Note that this call is synchronous!"
   (set-override-map buffer)
   ;; Assign default modes. Order is important, since keybindings take
   ;; precedence based on the list's order (first ele is highest precedence).
-  (let ((my-mode-list '(my-mode vi-normal-mode user-style-mode blocker-mode)))
+  (let ((my-mode-list '(my-mode vi-normal-mode blocker-mode)))
     (setf (default-modes buffer)
 	  (concatenate 'list my-mode-list (default-modes buffer)))))
 
