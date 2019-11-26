@@ -442,6 +442,7 @@ in Emacs for editing. Note that this call is synchronous!"
   "C-c b b" #'make-buffer-from-bookmark
   ":" #'execute-command-or-ex
   "C-x k" #'my-delete-buffer
+  "C-x b" #'switch-buffer
   "p" #'next/web-mode:paste
   "P" #'next/web-mode:paste-from-ring)
 
