@@ -1,0 +1,3 @@
+[submodule "user-styles/solarized-everything-css"]
+	path = user-styles/solarized-everything-css
+	url = https://github.com/alphapapa/solarized-everything-css.git
