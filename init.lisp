@@ -427,7 +427,7 @@ in Emacs for editing. Note that this call is synchronous!"
 
 ;; Load a stylesheet
 (defparameter *user-style-path*
-  "~/common-lisp/solarized-everything-css/css/solarized-dark/solarized-dark-all-sites.css")
+  (xdg-config-home "user-styles/solarized-everything-css/css/solarized-dark/solarized-dark-all-sites.css"))
 (load-stylesheet *user-style-path*)
 
 ;;
