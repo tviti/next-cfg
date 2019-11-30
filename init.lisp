@@ -471,9 +471,12 @@ in Emacs for editing. Note that this call is synchronous!"
 ;;
 ;; Minibuffer customizations
 ;;
+(defvar *my-minibuffer-font-size* "14px")
 (defvar *my-minibuffer-style* (cl-css:css
-			       '((* :font-family "Inconsolata")
-				 (body :border-top "4px solid dimgray"
+			       '((* :font-family "DejaVu Sans Mono"
+				  :color "#655370")
+				 (body :border-top "1px solid dimgray"
+				  :background-color "#fbf8ef"
 				  :margin "0"
 				  :padding "0 6px")
 				 ("#container" :display "flex"
@@ -487,7 +490,8 @@ in Emacs for editing. Note that this call is synchronous!"
 				 ("#cursor" :background-color "gray"
 				  :color "white")
 				 ("#prompt" :padding-right "4px"
-				  :color "dimgray")
+				  :font-weight "bold"
+				  :color "#3a81c3")
 				 (ul :list-style "none"
 				  :padding "0"
 				  :margin "0")
@@ -498,13 +502,14 @@ in Emacs for editing. Note that this call is synchronous!"
 				 ;; .selected must be set _after_ .marked so
 				 ;; that it overrides its attributes since the
 				 ;; candidate can be both marked and selected.
-				 (.selected :background-color "gray"
-				  :color "white"))))
-  
+				 (.selected :background-color "#d3d3e7"
+				  :font-weight "bold"))))
+
 
 (defun my-minibuffer-defaults (minibuffer)
   ""
-  (setf (minibuffer-style minibuffer) *my-minibuffer-style*))
+  (setf (minibuffer-style minibuffer) *my-minibuffer-style*)
+  (setf (minibuffer-font-size minibuffer) *my-minibuffer-font-size*))
 
 ;; Use the hooks mechanism to apply all the customizations
 (defun my-interface-defaults ()
