@@ -24,7 +24,7 @@
   ())
 
 (defun inject-stylesheet (str buffer)
-  "Inject the CSS stylesheet contained in str, into the buffer buffer."
+  "Inject the CSS stylesheet STR, into the BUFFER."
   (rpc-buffer-evaluate-javascript
    buffer
    (ps:ps (let ((str (ps:lisp str))
