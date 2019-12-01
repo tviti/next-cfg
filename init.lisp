@@ -427,7 +427,8 @@ in Emacs for editing. Note that this call is synchronous!"
 
 ;; Load a stylesheet
 (defparameter *user-style-path*
-  (xdg-config-home "user-styles/solarized-everything-css/css/solarized-dark/solarized-dark-all-sites.css"))
+  (xdg-config-home "user-styles/Global-Dark-Style/data/themes/global-dark-style.css"))
+
 (load-stylesheet *user-style-path*)
 
 ;;
@@ -464,7 +465,7 @@ in Emacs for editing. Note that this call is synchronous!"
   (set-override-map buffer)
   ;; Assign default modes. Order is important, since keybindings take
   ;; precedence based on the list's order (first ele is highest precedence).
-  (let ((my-mode-list '(my-mode vi-normal-mode blocker-mode)))
+  (let ((my-mode-list '(my-mode user-style-mode vi-normal-mode blocker-mode)))
     (setf (default-modes buffer)
 	  (concatenate 'list my-mode-list (default-modes buffer)))))
 

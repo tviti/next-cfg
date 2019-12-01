@@ -1,3 +1,6 @@
 [submodule "user-styles/solarized-everything-css"]
 	path = user-styles/solarized-everything-css
 	url = https://github.com/alphapapa/solarized-everything-css.git
+[submodule "user-styles/Global-Dark-Style"]
+	path = user-styles/Global-Dark-Style
+	url = git@github.com:tviti/Global-Dark-Style.git
