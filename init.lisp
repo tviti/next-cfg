@@ -15,6 +15,21 @@
 ;;
 (setf next/vcs:*vcs-projects-roots* '("~/Source"))
 (setf next/vcs:*vcs-usernames-alist* '(("github.com" . "tviti")))
+
+;;
+;; Misc. hooks
+;;
+(defun old-reddit-hook (url)
+  "Enforce old reddit. (taken from github.com/vindarel/next-init.lisp)"
+  (let* ((uri (quri:uri url)))
+    (if (search "www.reddit" (quri:uri-host uri))
+        (progn
+          (setf (quri:uri-host uri) "old.reddit.com")
+          (let ((new-url (quri:render-uri uri)))
+            (log:info "Switching to old Reddit: ~a" new-url)
+            new-url))
+        url)))
+
 ;; Unfortunately, if we launch from an application package (e.g. by double
 ;; clicking Next.app) macOS doesn't seem to properly set the dbus session bus
 ;; address (that, or I just don't understand HOW it is setting it), so we will
@@ -468,6 +483,9 @@ in Emacs for editing. Note that this call is synchronous!"
 
 (defun my-buffer-defaults (buffer)
   (set-override-map buffer)
+  (dolist (handler (list #'old-reddit-hook))
+    (hooks:add-to-hook (hooks:object-hook buffer 'load-hook)
+                       handler))
   ;; Assign default modes. Order is important, since keybindings take
   ;; precedence based on the list's order (first ele is highest precedence).
   (let ((my-mode-list '(my-mode user-style-mode vi-normal-mode blocker-mode)))
