@@ -10,6 +10,11 @@
 	("python3" . "https://docs.python.org/3/search.html?q=~a")
 	("doi" . "https://dx.doi.org/~a")))
 
+;;
+;; vsc-mode configuration
+;;
+(setf next/vcs:*vcs-projects-roots* '("~/Source"))
+(setf next/vcs:*vcs-usernames-alist* '(("github.com" . "tviti")))
 ;; Unfortunately, if we launch from an application package (e.g. by double
 ;; clicking Next.app) macOS doesn't seem to properly set the dbus session bus
 ;; address (that, or I just don't understand HOW it is setting it), so we will
