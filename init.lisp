@@ -465,7 +465,9 @@ in Emacs for editing. Note that this call is synchronous!"
   "C-x k" #'my-delete-buffer
   "C-x b" #'switch-buffer
   "p" #'next/web-mode:paste
-  "P" #'next/web-mode:paste-from-ring)
+  "P" #'next/web-mode:paste-from-ring
+  "Z Z" #'quit-after-clearing-session
+  "C-x C-c" #'quit-after-clearing-session)
 
 (define-mode my-mode ()
   ""
