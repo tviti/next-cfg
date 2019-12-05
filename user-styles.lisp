@@ -10,8 +10,9 @@
 
 ;; TODO: Can we override the default white buffer background, so that we don't
 ;; get blinded temporarily while pages are still loading?
-
-(in-package :next)
+(uiop:define-package :next/user-style-mode
+    (:use :common-lisp :next))
+(in-package :next/user-style-mode)
 
 ;; The user stylesheet is loaded into a global var, so that we don't have to
 ;; re-load it every time the injection function(s) are invoked.
