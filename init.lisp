@@ -490,10 +490,9 @@ in Emacs for editing. Note that this call is synchronous!"
                        handler))
   ;; Assign default modes. Order is important, since keybindings take
   ;; precedence based on the list's order (first ele is highest precedence).
-  (let ((my-mode-list '(my-mode user-style-mode vi-normal-mode blocker-mode)))
+  (let ((my-mode-list '(my-mode vi-normal-mode blocker-mode)))
     (setf (default-modes buffer)
 	  (concatenate 'list my-mode-list (default-modes buffer)))))
-
 ;;
 ;; Minibuffer customizations
 ;;
