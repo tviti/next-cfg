@@ -464,6 +464,8 @@ in Emacs for editing. Note that this call is synchronous!"
   ":" #'execute-command-or-ex
   "C-x k" #'my-delete-buffer
   "C-x b" #'switch-buffer
+  "C-x r b" #'set-url-from-bookmark
+  "S-x" #'execute-command
   "p" #'next/web-mode:paste
   "P" #'next/web-mode:paste-from-ring
   "Z Z" #'quit-after-clearing-session
