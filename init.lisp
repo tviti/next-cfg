@@ -214,10 +214,10 @@ character long ex-command followed by a space, then the rest of the input-buffer
 string is treated as an argument line w/ completions (as though the user had
 pressed `RETURN' after entering the ex-command's alias)."
   (with-result (result (read-from-minibuffer
-			(make-instance 'minibuffer
-				       :default-modes '(minibuffer-mode)
-				       :input-prompt ":"
-				       :completion-function 'ex-command-completion-filter)))
+			(make-minibuffer
+			 :default-modes '(minibuffer-mode)
+			 :input-prompt ":"
+			 :completion-function 'ex-command-completion-filter)))
     (ex-handler result)))
 
 
@@ -317,15 +317,15 @@ database. A git add is then performed on the selected file."
 (define-command bookmark-db-pull ()
   "Do a git pull on the bookmark db repo. Return 'nil if there is no repo."
   (if (bookmark-db-commit "bookmark-db-pull")
-	(print (bookmark-db-git-cmd '("pull" "origin" "master")))
-	'nil))
+      (print (bookmark-db-git-cmd '("pull" "origin" "master")))
+      'nil))
 
 (define-command bookmark-db-push ()
   "Do a git push on the bookmark db repo. Return 'nil if there is no repo."
   (if (bookmark-db-commit "bookmark-db-push")
-	(print (bookmark-db-git-cmd '("push" "origin" "master")))
-	'nil))
-		      
+      (print (bookmark-db-git-cmd '("push" "origin" "master")))
+      'nil))
+
 (defun query-bookmark-db-entry (&key callback)
   "Ask the user to select an entry from the active bookmark-db. Return the url
 of the selected entry."
@@ -390,7 +390,7 @@ of the selected entry."
       ;; Set the new entry's title, then stuff it into the db
       (setf (title entry) title)
       (push entry (bookmarks-data *interface*)))))
-  
+
 (define-command make-buffer-from-bookmark ()
   "Open a new tab with url set from a bookmark in the current db."
   (let ((buffer (make-buffer)))
@@ -429,8 +429,8 @@ in Emacs for editing. Note that this call is synchronous!"
   using the <C-x #> keybinding, the text will be placed in the next-buffer's
   active input element."
   (with-result (ext (read-from-minibuffer
-		       (make-instance 'minibuffer
-				      :input-prompt "temp-file ext (default .txt):")))
+		     (make-instance 'minibuffer
+				    :input-prompt "temp-file ext (default .txt):")))
     (let ((tempfile (format nil "/tmp/next-tmp~a" (if ext ext ".txt"))))
       (rpc-buffer-evaluate-javascript
        (current-buffer)
@@ -461,13 +461,18 @@ in Emacs for editing. Note that this call is synchronous!"
   "C-c b m" #'bookmark-db-mv
   "C-c b c" #'bookmark-db-cp
   "C-c b b" #'make-buffer-from-bookmark
-  ":" #'execute-command-or-ex
   "C-x k" #'my-delete-buffer
   "C-x b" #'switch-buffer
+  "S-x" #'execute-command
   "p" #'next/web-mode:paste
   "P" #'next/web-mode:paste-from-ring
   "Z Z" #'quit-after-clearing-session
+  ":" #'execute-command-or-ex
   "C-x C-c" #'quit-after-clearing-session)
+
+(defvar *my-override-map* (make-keymap))
+(define-key :keymap *my-override-map*
+  "C-[" #'spoof-escape-key)
 
 (define-mode my-mode ()
   ""
@@ -475,41 +480,21 @@ in Emacs for editing. Note that this call is synchronous!"
                                    :vi-normal *my-keymap*))))
 
 ;;
-;; Define customization handlers
+;; Buffer customizations
 ;;
-(defun set-override-map (buffer)
-  "For some reason, certain bindings don't work unless they are set in the
-  buffer's override map (is `root-mode' taking precedence?)"
-  (define-key :keymap (override-map buffer)
-    "C-[" #'spoof-escape-key))
+(defclass my-buffer-defaults (buffer)
+  ((override-map :initform *my-override-map*)
+   (default-modes :initform
+       (concatenate 'list
+		    '(my-mode vi-normal-mode blocker-mode)
+		    (get-default 'buffer 'default-modes)))))
+(setf *buffer-class* 'my-buffer-defaults)
 
-(defun my-buffer-defaults (buffer)
-  (set-override-map buffer)
-  (dolist (handler (list #'old-reddit-hook))
-    (hooks:add-to-hook (hooks:object-hook buffer 'load-hook)
-                       handler))
-  ;; Assign default modes. Order is important, since keybindings take
-  ;; precedence based on the list's order (first ele is highest precedence).
-  (let ((my-mode-list '(my-mode vi-normal-mode blocker-mode)))
-    (setf (default-modes buffer)
-	  (concatenate 'list my-mode-list (default-modes buffer)))))
 ;;
 ;; Minibuffer customizations
 ;;
-(defvar *my-minibuffer-font-size* "14px")
-(load (merge-pathnames "./themes/spacemacs-dark" *load-truename*))
-
-(defun my-minibuffer-defaults (minibuffer)
-  ""
-  (setf (minibuffer-style minibuffer) *my-minibuffer-style*)
-  (setf (minibuffer-font-size minibuffer) *my-minibuffer-font-size*))
-
-;; Use the hooks mechanism to apply all the customizations
-(defun my-interface-defaults ()
-  (hooks:add-to-hook (hooks:object-hook *interface* 'buffer-make-hook)
-                     #'my-buffer-defaults)
-  (hooks:add-to-hook (hooks:object-hook *interface* 'minibuffer-make-hook)
-		     #'my-minibuffer-defaults))
-
-(hooks:add-to-hook '*after-init-hook* #'my-interface-defaults)
-
+(load (merge-pathnames "./themes/spacemacs-light.lisp" *load-truename*))
+(defclass my-minibuffer-defaults (minibuffer)
+  ((minibuffer-style :initform *my-minibuffer-style*)
+   (minibuffer-font-size :initform "14px")))
+(setf *minibuffer-class* 'my-minibuffer-defaults)		     
