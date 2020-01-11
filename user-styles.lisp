@@ -15,14 +15,14 @@
   (:export :*user-style* :%load-stylesheet :%add-to-default-modes))
 (in-package :next/user-style-mode)
 
-;; The user stylesheet is loaded into a global var, so that we don't have to
-;; re-load it every time the injection function(s) are invoked.
 (defvar *user-style* ""
-  "String valued stylesheet to inject on page load.")
+  "String valued stylesheet to inject on page load.
 
-;; Create a dummy mode so that we can dispatch the page load methods on it.
+The user stylesheet is loaded into a global var, so that we don't have to
+re-load it every time the injection function(s) are invoked.")
+
 (define-mode user-style-mode ()
-  ""
+  "Dummy mode that page load methods can be dispatched on."
   ((keymap-schemes :initform nil)))
 
 (defun inject-stylesheet (str buffer)
