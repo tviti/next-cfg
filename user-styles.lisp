@@ -53,18 +53,17 @@
 
 (defun activate-global-style (&optional (interface *interface*))
   "Add `user-style-mode' to the `default-modes' of new buffers."
-  (let ((active-buffer (active-buffer (last-active-window interface)))
-	(hook (buffer-make-hook interface))
-	(handler (make-handler-buffer
-		  #'next/user-style-mode:%add-to-default-modes)))
-    (next-hooks:add-hook hook handler)
+  (with-accessors ((active-buffer last-active-buffer)
+		   (hook buffer-make-hook)) interface
+    (next-hooks:add-hook hook (make-handler-buffer
+			       #'next/user-style-mode:%add-to-default-modes))
     (funcall (sym (mode-command 'next/user-style-mode:user-style-mode))
 	     :buffer active-buffer :activate t)
     (reload-current-buffer active-buffer)))
 
 (defun deactivate-global-style (&optional (interface *interface*))
   "Remove `user-style-mode' from the `default-modes' of new buffers."
-  (let ((active-buffer (active-buffer (last-active-window interface))))
+  (with-accessors ((active-buffer last-active-buffer)) interface
     (next-hooks:remove-hook (buffer-make-hook interface)
 			    'next/user-style-mode:%add-to-default-modes)
     (funcall (sym (mode-command 'next/user-style-mode:user-style-mode))
@@ -73,7 +72,7 @@
 	
 (define-command toggle-global-style (&optional (interface *interface*))
   "Toggle using `user-style-mode' in new buffers."
-  (let ((handlers (next-hooks:handlers (buffer-make-hook interface))))
+  (with-accessors ((handlers next-hooks:handlers)) (buffer-make-hook interface)
     (if (member 'next/user-style-mode:%add-to-default-modes
 		(mapcar #'next-hooks:name handlers))
 	(deactivate-global-style interface)
