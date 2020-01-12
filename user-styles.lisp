@@ -12,19 +12,18 @@
 ;; get blinded temporarily while pages are still loading?
 (uiop:define-package :next/user-style-mode
     (:use :common-lisp :next)
-  (:export :*user-style* :%load-stylesheet :activate-global-style
-	   :deactivate-global-style))
+  (:export :*user-style* :%load-stylesheet :%add-to-default-modes))
 (in-package :next/user-style-mode)
 
-;; The user stylesheet is loaded into a global var, so that we don't have to
-;; re-load it every time the injection function(s) are invoked.
 (defvar *user-style* ""
-  "String valued stylesheet to inject on page load.")
+  "String valued stylesheet to inject on page load.
 
-;; Create a dummy mode so that we can dispatch the page load methods on it.
+The user stylesheet is loaded into a global var, so that we don't have to
+re-load it every time the injection function(s) are invoked.")
+
 (define-mode user-style-mode ()
-  ""
-  ())
+  "Dummy mode that page load methods can be dispatched on."
+  ((keymap-schemes :initform nil)))
 
 (defun inject-stylesheet (str buffer)
   "Inject the CSS stylesheet STR, into the BUFFER."
@@ -41,7 +40,7 @@
   (with-open-file (s css-path :direction :input)
     (let ((contents (make-string (file-length s))))
       (read-sequence contents s)
-      (setf next/user-style-mode::*user-style* contents))))
+      (setf next/user-style-mode:*user-style* contents))))
 
 (defun load-stylesheet-filter (input)
   "TODO: Completion filter."
@@ -50,24 +49,34 @@
 (defun %add-to-default-modes (buffer)
   (pushnew 'user-style-mode (default-modes buffer)))
 
+(in-package :next)
+
 (defun activate-global-style (&optional (interface *interface*))
   "Add `user-style-mode' to the `default-modes' of new buffers."
-  (hooks:add-to-hook (hooks:object-hook interface 'buffer-make-hook) #'%add-to-default-modes))
+  (with-accessors ((active-buffer last-active-buffer)
+		   (hook buffer-make-hook)) interface
+    (next-hooks:add-hook hook (make-handler-buffer
+			       #'next/user-style-mode:%add-to-default-modes))
+    (funcall (sym (mode-command 'next/user-style-mode:user-style-mode))
+	     :buffer active-buffer :activate t)
+    (reload-current-buffer active-buffer)))
 
 (defun deactivate-global-style (&optional (interface *interface*))
   "Remove `user-style-mode' from the `default-modes' of new buffers."
-  (let ((hook-handlers (hooks:hook-handlers (hooks:object-hook interface 'buffer-make-hook))))
-    (hooks:clear-hook (hooks:object-hook interface 'buffer-make-hook))
-    (dolist (handler (remove (function %add-to-default-modes) hook-handlers :test #'equal))
-      (hooks:add-to-hook (hooks:object-hook interface 'buffer-make-hook) handler))))
-
-(in-package :next)
+  (with-accessors ((active-buffer last-active-buffer)) interface
+    (next-hooks:remove-hook (buffer-make-hook interface)
+			    'next/user-style-mode:%add-to-default-modes)
+    (funcall (sym (mode-command 'next/user-style-mode:user-style-mode))
+	     :buffer active-buffer :activate nil)
+    (reload-current-buffer active-buffer)))
+	
 (define-command toggle-global-style (&optional (interface *interface*))
   "Toggle using `user-style-mode' in new buffers."
-  (let ((hook-handlers (hooks:hook-handlers (hooks:object-hook interface 'buffer-make-hook))))
-    (if (member #'next/user-style-mode::%add-to-default-modes hook-handlers)
-	(next/user-style-mode:deactivate-global-style interface)
-	(next/user-style-mode:activate-global-style interface))))
+  (with-accessors ((handlers next-hooks:handlers)) (buffer-make-hook interface)
+    (if (member 'next/user-style-mode:%add-to-default-modes
+		(mapcar #'next-hooks:name handlers))
+	(deactivate-global-style interface)
+	(activate-global-style interface))))
 
 (define-command load-stylesheet (&optional (css-path))
   "Prompt for a stylesheet path CSS-PATH, then load the contents of the css file
