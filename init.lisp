@@ -60,39 +60,6 @@
 ;; 		     :output :interactive)
 ;; (sleep 2)  ;; Take a breather (otherwise core can't connect for some reason)
 
-(defun my-buffer-completion-filter ()
-  (let ((buffers (alexandria:hash-table-values (buffers *interface*)))
-        (active-buffer (current-buffer)))
-    ;; Make the active buffer the first buffer in the list
-    (when (not (equal (first buffers) active-buffer))
-      (push active-buffer buffers))
-    (lambda (input) (fuzzy-match input buffers))))
-
-(define-command my-delete-buffer ()
-  "Delete the buffer via minibuffer input. This is basically identical to the
-original implementation, but uses a slightly modified completion function that
-makes the active buffer the default deletion (i.e. how it is in Emacs)."
-  (with-result (buffers (read-from-minibuffer
-			 (make-instance 'minibuffer
-					:input-prompt "Kill buffer(s):"
-					:multi-selection-p t
-					:completion-function (my-buffer-completion-filter))))
-    (mapcar #'rpc-buffer-delete buffers)))
-
-(define-command delete-all-buffers ()
-  "Delete ALL buffers, EXCEPT for the active buffer. I'd prefer to just delete
-ALL of them (even the active buffer), but Next doesn't seem to like it when the
-sole active buffer gets deleted."
-  (with-result (y-n (read-from-minibuffer
-		     (make-instance 'minibuffer
-				    :input-prompt "Are you sure you want to kill all buffers (y or n)?")))
-    (when (string-equal y-n "y")
-      (let* ((active-buffer (current-buffer))
-	     (buffers (alexandria:hash-table-values
-		       (buffers *interface*)))
-	     (bg-buffers (remove active-buffer buffers)))
-	(mapcar #'rpc-buffer-delete bg-buffers)))))
-
 ;;
 ;; Hacked together keyboard macros (a hackro?)
 ;;
@@ -461,7 +428,7 @@ in Emacs for editing. Note that this call is synchronous!"
   "C-c b m" #'bookmark-db-mv
   "C-c b c" #'bookmark-db-cp
   "C-c b b" #'make-buffer-from-bookmark
-  "C-x k" #'my-delete-buffer
+  "C-x k" #'delete-buffer
   "C-x b" #'switch-buffer
   "C-x r b" #'set-url-from-bookmark
   "M-x" #'execute-command
