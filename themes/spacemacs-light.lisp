@@ -1,5 +1,5 @@
 ;; A spacemacs-light theme for the next-browser minibuffer
-(in-package :next)
+(in-package :next-user)
 
 (defvar *my-minibuffer-style* (cl-css:css
 			       '((* :font-family "DejaVu Sans Mono"

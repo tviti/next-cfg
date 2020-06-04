@@ -27,7 +27,7 @@ re-load it every time the injection function(s) are invoked.")
 
 (defun inject-stylesheet (str buffer)
   "Inject the CSS stylesheet STR, into the BUFFER."
-  (rpc-buffer-evaluate-javascript
+  (ffi-buffer-evaluate-javascript
    buffer
    (ps:ps (let ((str (ps:lisp str))
 		(node (ps:chain document (create-element "style"))))
@@ -51,32 +51,32 @@ re-load it every time the injection function(s) are invoked.")
 
 (in-package :next)
 
-(defun activate-global-style (&optional (interface *interface*))
+(defun activate-global-style (&optional (browser *browser*))
   "Add `user-style-mode' to the `default-modes' of new buffers."
   (with-accessors ((active-buffer last-active-buffer)
-		   (hook buffer-make-hook)) interface
-    (next-hooks:add-hook hook (make-handler-buffer
-			       #'next/user-style-mode:%add-to-default-modes))
+		   (hook buffer-before-make-hook)) browser
+    (hooks:add-hook hook (make-handler-buffer
+			  #'next/user-style-mode:%add-to-default-modes))
     (funcall (sym (mode-command 'next/user-style-mode:user-style-mode))
 	     :buffer active-buffer :activate t)
     (reload-current-buffer active-buffer)))
 
-(defun deactivate-global-style (&optional (interface *interface*))
+(defun deactivate-global-style (&optional (browser *browser*))
   "Remove `user-style-mode' from the `default-modes' of new buffers."
-  (with-accessors ((active-buffer last-active-buffer)) interface
-    (next-hooks:remove-hook (buffer-make-hook interface)
-			    'next/user-style-mode:%add-to-default-modes)
+  (with-accessors ((active-buffer last-active-buffer)) browser
+    (hooks:remove-hook (buffer-before-make-hook browser)
+		       'next/user-style-mode:%add-to-default-modes)
     (funcall (sym (mode-command 'next/user-style-mode:user-style-mode))
 	     :buffer active-buffer :activate nil)
     (reload-current-buffer active-buffer)))
 	
-(define-command toggle-global-style (&optional (interface *interface*))
+(define-command toggle-global-style (&optional (browser *browser*))
   "Toggle using `user-style-mode' in new buffers."
-  (with-accessors ((handlers next-hooks:handlers)) (buffer-make-hook interface)
+  (with-accessors ((handlers hooks:handlers)) (buffer-before-make-hook browser)
     (if (member 'next/user-style-mode:%add-to-default-modes
-		(mapcar #'next-hooks:name handlers))
-	(deactivate-global-style interface)
-	(activate-global-style interface))))
+		(mapcar #'hooks:name handlers))
+	(deactivate-global-style browser)
+	(activate-global-style browser))))
 
 (define-command load-stylesheet (&optional (css-path))
   "Prompt for a stylesheet path CSS-PATH, then load the contents of the css file
@@ -90,7 +90,8 @@ into the global `*user-style*' var."
 					     :completion-function #'next/user-style-mode::load-stylesheet-filter)))
 	(next/user-style-mode:%load-stylesheet css-path))))
 
-(defmethod did-finish-navigation ((mode next/user-style-mode:user-style-mode) url)
+(in-package :next)
+(defmethod on-signal-load-finished ((mode next/user-style-mode:user-style-mode) url)
   "Inject the user's stylesheet upon page load completion."
   (next/user-style-mode::inject-stylesheet next/user-style-mode:*user-style* (current-buffer))
   url)
