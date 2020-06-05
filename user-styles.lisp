@@ -52,7 +52,12 @@ re-load it every time the injection function(s) are invoked.")
 (in-package :next)
 
 (defun activate-global-style (&optional (browser *browser*))
-  "Add `user-style-mode' to the `default-modes' of new buffers."
+  "Add `user-style-mode' to the `default-modes' of new buffers, as well as the
+`modes' of existing buffers. The `last-active-buffer' will also be reloaded."
+  (mapcar (lambda (buffer)
+	    (funcall (sym (mode-command 'next/user-style-mode:user-style-mode))
+		     :buffer buffer :activate t))
+	  (alexandria:hash-table-values (buffers browser)))
   (with-accessors ((active-buffer last-active-buffer)
 		   (hook buffer-before-make-hook)) browser
     (hooks:add-hook hook (make-handler-buffer
@@ -62,13 +67,15 @@ re-load it every time the injection function(s) are invoked.")
     (reload-current-buffer active-buffer)))
 
 (defun deactivate-global-style (&optional (browser *browser*))
-  "Remove `user-style-mode' from the `default-modes' of new buffers."
-  (with-accessors ((active-buffer last-active-buffer)) browser
-    (hooks:remove-hook (buffer-before-make-hook browser)
-		       'next/user-style-mode:%add-to-default-modes)
-    (funcall (sym (mode-command 'next/user-style-mode:user-style-mode))
-	     :buffer active-buffer :activate nil)
-    (reload-current-buffer active-buffer)))
+  "Remove `user-style-mode' from current and new buffers. The
+`last-active-buffer' will also be reloaded."
+  (mapcar (lambda (buffer)
+	    (funcall (sym (mode-command 'next/user-style-mode:user-style-mode))
+		     :buffer buffer :activate nil))
+	  (alexandria:hash-table-values (buffers browser)))
+  (hooks:remove-hook (buffer-before-make-hook browser)
+		     'next/user-style-mode:%add-to-default-modes)
+    (reload-current-buffer (last-active-buffer browser)))
 	
 (define-command toggle-global-style (&optional (browser *browser*))
   "Toggle using `user-style-mode' in new buffers."
