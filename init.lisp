@@ -4,6 +4,8 @@
 (defvar *my-search-engines* nil)
 (setf *my-search-engines*
       (list
+       '("gmt" "https://docs.generic-mapping-tools.org/6.0/search.html?q=~a&check_keywords=yes&area=default" "https://docs.generic-mapping-tools.org/6.0")
+       '("gmt-docs" "https://docs.generic-mapping-tools.org/6.0/~a.html" "https://docs.generic-mapping-tools.org/6.0")
        '("google" "https://www.google.com/search?q=~a" "https://www.google.com/")
        '("quickdocs" "http://quickdocs.org/search?q=~a" "http://quickdocs.org/")
        '("wiki" "https://en.wikipedia.org/w/index.php?search=~a" "https://en.wikipedia.org/")
