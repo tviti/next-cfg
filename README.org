@@ -8,21 +8,6 @@
   - https://github.com/next-browser/next
   - https://github.com/atlas-engineer/next/blob/master/documents/MANUAL.org
 * Features
-** Vim =ex= style command abbreviations
-   In Emacs, I rely heavily on the ~b~ and ~e~ =ex= commands for swapping
-   buffers and opening files. Here, they are aliases for ~switch-buffer~ and
-   ~set-url-new-buffer~. The =ex-style= aliases live in their own command list
-   though, and are thus not callable from ~execute-command~ prompt (i.e. they
-   are invisible to the =M-x= prompt). To access them, call
-   ~execute-command-or-ex~ (accessible via =:=, like in Vi or =evi-mode=).
-
-   The ~execute-command-or-ex~ prompt should allow you to access all the
-   /non/-ex-style commands as well (just like ~execute-command~). It also
-   implements a very primitive/hackish/experimental attempt at passing
-   tab-completable arguments to the ex-style commands. For example, after
-   entering =b SPACE=, the prompt should bring up the same completion list as
-   ~switch-buffer~.
-*** TODO Update ex-command filter to use multi-select
 ** "Hot-swapping" and version controlling ~bookmark-db~ files     :bookmarks:
    The command ~select-bookmark-db~ allows you to change ~bookmark-db-path~
    (i.e. the "active" bookmark database file) on the fly, via a minibuffer
