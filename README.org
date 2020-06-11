@@ -8,11 +8,6 @@
   - https://github.com/next-browser/next
   - https://github.com/atlas-engineer/next/blob/master/documents/MANUAL.org
 * Features
-** Automatically determine the =dbus= socket's location on macOS
-   macOS doesn't define the env var =DBUS_SESSION_BUS_ADDRESS= on it's own, and
-   I have also noticed that often times =DBUS_LAUNCHD_SESSION_BUS_SOCKET= will
-   be pointing to the wrong location, so I query the value of the latter and
-   then use it to set the former when =next= starts.
 ** Vim =ex= style command abbreviations
    In Emacs, I rely heavily on the ~b~ and ~e~ =ex= commands for swapping
    buffers and opening files. Here, they are aliases for ~switch-buffer~ and
