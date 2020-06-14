@@ -1,4 +1,4 @@
-(in-package :next-user)
+(in-package :nyxt-user)
 
 ;; Setup the search engine "shortcut" IDs
 (defvar *my-search-engines* nil)
@@ -16,8 +16,8 @@
 ;;
 ;; vsc-mode configuration
 ;;
-(setf next/vcs:*vcs-projects-roots* '("~/Source"))
-(setf next/vcs:*vcs-usernames-alist* '(("github.com" . "tviti")))
+(setf nyxt/vcs:*vcs-projects-roots* '("~/Source"))
+(setf nyxt/vcs:*vcs-usernames-alist* '(("github.com" . "tviti")))
 
 ;;
 ;; Misc. hook handlers
@@ -70,7 +70,7 @@ in Emacs for editing. Note that this call is synchronous!"
       contents)))
 
 (defun edit-in-emacs-callback (retval buffer
-                               &optional (tempfile "/tmp/next-tmp.txt"))
+                               &optional (tempfile "/tmp/nyxt-tmp.txt"))
   (let ((output (edit-str-with-emacs retval tempfile)))
     (ffi-buffer-evaluate-javascript
      buffer
@@ -79,12 +79,12 @@ in Emacs for editing. Note that this call is synchronous!"
 (define-command edit-in-emacs ()
   "Open a new emacs frame using the `emacsclient' mechanism, and place the value
   of the currently selected input element in a temporary buffer. Upon exiting
-  using the <C-x #> keybinding, the text will be placed in the next-buffer's
+  using the <C-x #> keybinding, the text will be placed in the nyxt-buffer's
   active input element."
   (with-result (ext (read-from-minibuffer
                      (make-instance 'minibuffer
                                     :input-prompt "temp-file ext (default .txt):")))
-    (let ((tempfile (format nil "/tmp/next-tmp~a" (if ext ext ".txt"))))
+    (let ((tempfile (format nil "/tmp/nyxt-tmp~a" (if ext ext ".txt"))))
       (ffi-buffer-evaluate-javascript
        (current-buffer)
        (ps:ps (ps:@ document active-element value))
@@ -96,10 +96,10 @@ in Emacs for editing. Note that this call is synchronous!"
   "Org-capture current page. Stolen from Ambrevar's dotfiles repo."
   (eval-in-emacs
    `(org-link-set-parameters
-     "next"
+     "nyxt"
      :store (lambda ()
               (org-store-link-props
-               :type "next"
+               :type "nyxt"
                :link ,(url buffer)
                :description ,(title buffer))))
    `(org-capture)))
@@ -108,7 +108,7 @@ in Emacs for editing. Note that this call is synchronous!"
   "Evaluate S-exps with `emacsclient'. Stolen from Ambrevar's dotfiles repo."
   (let ((s-exps-string (cl-ppcre:regex-replace-all
                         ;; Discard the package prefix.
-                        "next-user::?"
+                        "nyxt-user::?"
                         (write-to-string
                          `(progn ,@s-exps) :case :downcase)
                         "")))
@@ -124,7 +124,7 @@ in Emacs for editing. Note that this call is synchronous!"
 
 ;; Load a stylesheet
 (defparameter *user-style-path*
-  (uiop:xdg-config-home "next/user-styles/Global-Dark-Style/data/themes/global-dark-style.css"))
+  (uiop:xdg-config-home "nyxt/user-styles/Global-Dark-Style/data/themes/global-dark-style.css"))
 
 (load-stylesheet *user-style-path*)
 
@@ -139,11 +139,11 @@ in Emacs for editing. Note that this call is synchronous!"
 
 (defvar *my-keymap* (make-keymap "my-map"))
 (define-key *my-keymap*
-    "C-x r b" 'next/web-mode::set-url-from-bookmark
+    "C-x r b" 'nyxt/web-mode::set-url-from-bookmark
     "C-c '" 'edit-in-emacs
     "C-c s-O" 'org-capture
-    "p" 'next/web-mode:paste
-    "P" 'next/web-mode:paste-from-ring
+    "p" 'nyxt/web-mode:paste
+    "P" 'nyxt/web-mode:paste-from-ring
     "Z Z" 'quit-after-clearing-session
     "C-x C-c" 'quit-after-clearing-session)
 
@@ -177,7 +177,7 @@ in Emacs for editing. Note that this call is synchronous!"
 ;;
 ;; Minibuffer customizations
 ;;
-;; (load (merge-pathnames "./themes/spacemacs-light.lisp" *load-truename*))
-(load (merge-pathnames "./themes/spacemacs-dark.lisp" *load-truename*))
+(load (merge-pathnames "./themes/spacemacs-light.lisp" *load-truename*))
+;; (load (merge-pathnames "./themes/spacemacs-dark.lisp" *load-truename*))
 (define-configuration minibuffer
   ((minibuffer-style *my-minibuffer-style*)))

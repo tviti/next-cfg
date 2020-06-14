@@ -1,7 +1,7 @@
-;; A next-browser mode for injecting CSS stylesheets into webviews, e.g. to
+;; A nyxt-browser mode for injecting CSS stylesheets into webviews, e.g. to
 ;; achieve a "dark-theme".
 ;;
-;; To use this file, first (load ...) it somewhere in your next config
+;; To use this file, first (load ...) it somewhere in your nyxt config
 ;; (e.g. init.lisp). Then, call load-stylesheet on the .CSS file you'd like to
 ;; associate with the user-style-mode. This will load the CSS file's contents
 ;; into the global *user-style* variable, which will be applied (upon page load
@@ -10,10 +10,10 @@
 
 ;; TODO: Can we override the default white buffer background, so that we don't
 ;; get blinded temporarily while pages are still loading?
-(uiop:define-package :next/user-style-mode
-    (:use :common-lisp :next)
+(uiop:define-package :nyxt/user-style-mode
+    (:use :common-lisp :nyxt)
   (:export :*user-style* :%load-stylesheet :%add-to-default-modes))
-(in-package :next/user-style-mode)
+(in-package :nyxt/user-style-mode)
 
 (defvar *user-style* ""
   "String valued stylesheet to inject on page load.
@@ -40,7 +40,7 @@ re-load it every time the injection function(s) are invoked.")
   (with-open-file (s css-path :direction :input)
     (let ((contents (make-string (file-length s))))
       (read-sequence contents s)
-      (setf next/user-style-mode:*user-style* contents))))
+      (setf nyxt/user-style-mode:*user-style* contents))))
 
 (defun load-stylesheet-filter (input)
   "TODO: Completion filter."
@@ -49,20 +49,20 @@ re-load it every time the injection function(s) are invoked.")
 (defun %add-to-default-modes (buffer)
   (pushnew 'user-style-mode (default-modes buffer)))
 
-(in-package :next)
+(in-package :nyxt)
 
 (defun activate-global-style (&optional (browser *browser*))
   "Add `user-style-mode' to the `default-modes' of new buffers, as well as the
 `modes' of existing buffers. The `last-active-buffer' will also be reloaded."
   (mapcar (lambda (buffer)
-	    (funcall (sym (mode-command 'next/user-style-mode:user-style-mode))
+	    (funcall (sym (mode-command 'nyxt/user-style-mode:user-style-mode))
 		     :buffer buffer :activate t))
 	  (alexandria:hash-table-values (buffers browser)))
   (with-accessors ((active-buffer last-active-buffer)
 		   (hook buffer-before-make-hook)) browser
     (hooks:add-hook hook (make-handler-buffer
-			  #'next/user-style-mode:%add-to-default-modes))
-    (funcall (sym (mode-command 'next/user-style-mode:user-style-mode))
+			  #'nyxt/user-style-mode:%add-to-default-modes))
+    (funcall (sym (mode-command 'nyxt/user-style-mode:user-style-mode))
 	     :buffer active-buffer :activate t)
     (reload-current-buffer active-buffer)))
 
@@ -70,17 +70,17 @@ re-load it every time the injection function(s) are invoked.")
   "Remove `user-style-mode' from current and new buffers. The
 `last-active-buffer' will also be reloaded."
   (mapcar (lambda (buffer)
-	    (funcall (sym (mode-command 'next/user-style-mode:user-style-mode))
+	    (funcall (sym (mode-command 'nyxt/user-style-mode:user-style-mode))
 		     :buffer buffer :activate nil))
 	  (alexandria:hash-table-values (buffers browser)))
   (hooks:remove-hook (buffer-before-make-hook browser)
-		     'next/user-style-mode:%add-to-default-modes)
+		     'nyxt/user-style-mode:%add-to-default-modes)
     (reload-current-buffer (last-active-buffer browser)))
 	
 (define-command toggle-global-style (&optional (browser *browser*))
   "Toggle using `user-style-mode' in new buffers."
   (with-accessors ((handlers hooks:handlers)) (buffer-before-make-hook browser)
-    (if (member 'next/user-style-mode:%add-to-default-modes
+    (if (member 'nyxt/user-style-mode:%add-to-default-modes
 		(mapcar #'hooks:name handlers))
 	(deactivate-global-style browser)
 	(activate-global-style browser))))
@@ -89,16 +89,16 @@ re-load it every time the injection function(s) are invoked.")
   "Prompt for a stylesheet path CSS-PATH, then load the contents of the css file
 into the global `*user-style*' var."
   (if css-path
-      (next/user-style-mode:%load-stylesheet css-path)
+      (nyxt/user-style-mode:%load-stylesheet css-path)
       (with-result (css-path (read-from-minibuffer
 			      (make-instance 'minibuffer
 					     :input-prompt "Stylesheet:"
 					     :empty-complete-immediate t
-					     :completion-function #'next/user-style-mode::load-stylesheet-filter)))
-	(next/user-style-mode:%load-stylesheet css-path))))
+					     :completion-function #'nyxt/user-style-mode::load-stylesheet-filter)))
+	(nyxt/user-style-mode:%load-stylesheet css-path))))
 
-(in-package :next)
-(defmethod on-signal-load-finished ((mode next/user-style-mode:user-style-mode) url)
+(in-package :nyxt)
+(defmethod on-signal-load-finished ((mode nyxt/user-style-mode:user-style-mode) url)
   "Inject the user's stylesheet upon page load completion."
-  (next/user-style-mode::inject-stylesheet next/user-style-mode:*user-style* (current-buffer))
+  (nyxt/user-style-mode::inject-stylesheet nyxt/user-style-mode:*user-style* (current-buffer))
   url)

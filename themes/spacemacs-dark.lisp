@@ -1,5 +1,5 @@
-;; A spacemacs-dark theme for the next-browser minibuffer
-(in-package :next-user)
+;; A spacemacs-dark theme for the nyxt-browser minibuffer
+(in-package :nyxt-user)
 
 (defvar *my-minibuffer-style* (cl-css:css
 			       '((* :font-family "DejaVu Sans Mono"

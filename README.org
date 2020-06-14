@@ -1,12 +1,12 @@
-#+TITLE: next-cfg
+#+TITLE: nyxt-cfg
 #+AUTHOR: Taylor Viti
-#+FILETAGS: :next_browser:
-  A repo for version controlling my =next-browser= init/config file(s).
+#+FILETAGS: :nyxt_browser:
+  A repo for version controlling my =nyxt-browser= init/config file(s).
 
-  For more information on =next-browser=, see:
+  For more information on =nyxt-browser=, see:
 
   - https://github.com/next-browser/next
-  - https://github.com/atlas-engineer/next/blob/master/documents/MANUAL.org
+  - https://github.com/atlas-engineer/nyxt/blob/master/documents/MANUAL.org
 * Features
 ** "Hot-swapping" and version controlling ~bookmark-db~ files     :bookmarks:
    The command ~select-bookmark-db~ allows you to change ~bookmark-db-path~
